@@ -6,7 +6,7 @@
 Install the module with [npm](https://npmjs.org):
 
 ```bash
-$ npm install --save embed
+$ npm install --save grunt-resourcesbinder
 ```
 
 Install your [bower](http://bower.io) dependencies (if you haven't already):
