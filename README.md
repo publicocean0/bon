@@ -1,4 +1,4 @@
-# embed
+# resourcesbinder
 > Embed dependencies to your source code.
 
 
@@ -35,7 +35,7 @@ Insert placeholders in your code where your dependencies will be injected:
 </html>
 ```
 
-Let `embed` work its magic:
+Let `resourcesbinder` work its magic:
 
 
 
@@ -43,13 +43,12 @@ Let `embed` work its magic:
 ```html
 <html>
 <head>
-  <!-- bower:css -->
-  <!-- endbower -->
+ <link href="/css/jquery.css">
 </head>
 <body>
-  <!-- bower:js -->
-  <script src="bower_components/jquery/dist/jquery.js"></script>
-  <!-- endbower -->
+
+  <script src="js/jquery.js"></script>
+
 </body>
 </html>
 ```
