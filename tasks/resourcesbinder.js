@@ -2,7 +2,7 @@
 'use strict';
 module.exports = function(grunt) {
 // Internal lib.
-var BLOCK=/[ \t]*<!--\s*embed:*(\S*)\s+(mapped|inline|collapsed)\s*(\s+(uglified|minified)\s*)?[\n\r]+((\n|\r|.)*)-->/gi;
+var BLOCK=/[ \t]*<!--\s*embed:*(\S*)\s+(mapped|inline|collapsed)\s*(\s+(uglified|minified)\s*)?[\n\r]+((\n|\r|[^-->])*)-->/gi;
 var md5 = require('MD5');
 var jsParser = require("uglify-js");
 var cssParser = require('uglifycss');
@@ -25,7 +25,6 @@ css:{replacement:{link:'<link rel="stylesheet" href="/css/{{file}}" />',inline:'
 
 
 },this.data);
-grunt.log.writeln(JSON.stringify(options));
 var $ = {
 bowerConfig: require('bower-config'),
  _: require('lodash'),
@@ -34,8 +33,8 @@ path: require('path')
 };
 var helpers = require('./lib/helpers');
 var config = module.exports.config = helpers.createStore();
-var currentDir=process.cwd();
-var cwd = options.cwd ? $.path.resolve(options.cwd) : currentDir;
+var currentDir=process.cwd()+'/';
+var cwd = options.cwd ? $.path.resolve(options.cwd)+'/' : currentDir;
 
 config.set
 ('bower.json', options.bowerJson || JSON.parse($.fs.readFileSync($.path.join(cwd, './bower.json'))))
@@ -54,7 +53,6 @@ function extend(source,target) {
         if (target instanceof Object  ){
 			var s=source;
 			for (var prop in target) {
-				grunt.log.writeln(prop);
                 s[prop] = extend( source[prop],target[prop]);
         }
         return s;
@@ -100,12 +98,22 @@ function getLinkReplacement(repl,depname,mimified,filetype){
 	// the path of file is inside the replacement because front-end logic is unknow here
 return repl.replace('{{file}}',renderLinkFile(depname,mimified,filetype))+options.separator
 }
+ function getAbsoluteDir(f){
+if (f.indexOf($.path.sep)==0) return f;
+return cwd+f;
+}
+
 function parseText(filepath,replacements,commands){
  var text = grunt.file.read(filepath);
  var gdeps={};
  var index=0;
- return text.replace(BLOCK, function(match, filetype,replacetype,minified,nop,files, offset, s)
-    {   var atfiles=files.split(options.separator);
+ return text.replace(BLOCK, function(match, filetype,replacetype,minified,nop,files,a1, offset, s)
+    {   
+		grunt.log.writeln('\t-Detecting block type '+filetype+' at offset '+offset);
+		if (config.get('detectable-file-types').indexOf(filetype)==-1){
+		throw new Error("file type '"+filetype+"' present in a file '"+filepath+"' block  is not defined" );	
+		}
+		var atfiles=files.split(options.separator);
 		var afiles=[],i,j;
 		for(i=0;i<atfiles.length;i++) {
 			var tmp=atfiles[i].trim();
@@ -123,7 +131,7 @@ function parseText(filepath,replacements,commands){
 				var collapsedFiles=[];
 	    }
 	    var repl=replacements[filetype].replacement[(isinline)?'inline':'link'];
-		var dest=replacements[filetype].target;	
+		var dest=getAbsoluteDir(replacements[filetype].target);	
 		for(var ii=0;ii<afiles.length;ii++) {
             var depname=afiles[ii];
 			var dep=ftypedeps[depname];
@@ -132,7 +140,7 @@ function parseText(filepath,replacements,commands){
 				error.code = 'BOWER_DEPENDENCY_MISSING';
 				throw error;
 			}
-
+            grunt.log.writeln('\t-Injecting dependency \''+depname+"'");
 
 
 			
@@ -277,19 +285,21 @@ function processFiles(files,commands){
 // Iterate over all src-dest file pairs.
 
 for(var j=0;j<files.length;j++){
+var res =files[j].match(/^[^**]*/);
+var basename=res[0];
+var mfiles=grunt.file.expandMapping(files[j], options.templates.target, {
+rename: function(destBase, destPath) {
+return destBase + destPath.replace(basename,'');
+}}); 
 
-var mfiles=grunt.file.expand(files[j])	;
 
 
-mfiles.filter(function(filepath) {
-
+mfiles.forEach(function(filemap) {
+var filepath=currentDir+'/'+filemap.src;
 if (!grunt.file.exists(filepath)) {
 grunt.log.warn('Source file "' + filepath + '" not found.');
-return false;
-} else {
-return true;
-}
-}).map(function(filepath, i) {
+return;
+} 
 if (grunt.file.isDir(filepath)) {
 return;
 }
@@ -297,13 +307,13 @@ return;
 
 var type=getFileType(filepath);
 var replacements=options.resources;
-var dest=options.templates.target+filepath;
+var dest=filemap.dest;
 
 // Print a success message.
-grunt.log.writeln('Processing ' + filepath + ': ');
+grunt.log.writeln('* Processing source ' + filepath);
 var content=parseText(filepath,replacements,commands);
 // Write the destination file.
-grunt.log.writeln('Saving in ' + dest + '.');
+grunt.log.writeln('Saving source in ' + dest);
 grunt.file.write(dest, content);
 });
 
@@ -319,6 +329,7 @@ var commands=[];
 processFiles(options.templates.sources,commands);
 commands=purgeCommands(commands);
 //grunt.log.writeln(JSON.stringify(commands));
+if (commands.length>0)grunt.log.writeln('* Saving resources ...');
 commands.forEach(function(c){
 executeCommand(c);
 });

@@ -43,9 +43,6 @@ return config;
 */
 function findComponentConfigFile(config, component) {
 var componentConfigFile;
-if (config.get('include-self') && component === config.get('bower.json').name) {
-return config.get('bower.json');
-}
 ['bower.json', '.bower.json', 'component.json', 'package.json'].
 forEach(function (configFile) {
 configFile = $.path.join(config.get('bower-directory'), component, configFile);
@@ -66,8 +63,9 @@ return componentConfigFile;
 function findMainFiles(config, component, componentConfigFile) {
 var filePaths = [];
 var file = {};
-var self = config.get('include-self') && component === config.get('bower.json').name;
-var cwd = self ? config.get('cwd') : $.path.join(config.get('bower-directory'), component);
+var cwd = $.path.join(config.get('bower-directory'), component);
+
+
 if ($._.isString(componentConfigFile.main)) {
 // start by looking for what every component should have: config.main
 filePaths = [componentConfigFile.main];
@@ -77,7 +75,7 @@ filePaths = componentConfigFile.main;
 // still haven't found it. is it stored in config.scripts, then?
 filePaths = componentConfigFile.scripts;
 } else {
-['js', 'css']
+config.get('detectable-file-types')
 .forEach(function (type) {
 file[type] = $.path.join(config.get('bower-directory'), component, componentConfigFile.name + '.' + type);
 if ($.fs.existsSync(file[type])) {
@@ -85,7 +83,7 @@ filePaths.push(componentConfigFile.name + '.' + type);
 }
 });
 }
-return $._.unique(filePaths.reduce(function (acc, filePath) {
+var ret= $._.unique(filePaths.reduce(function (acc, filePath) {
 acc = acc.concat(
 $.glob.sync(filePath, { cwd: cwd, root: '/' })
 .map(function (path) {
@@ -94,6 +92,8 @@ return $.path.join(cwd, path);
 );
 return acc;
 }, []));
+
+return ret;
 }
 /**
 * Store the information our prioritizer will need to determine rank.

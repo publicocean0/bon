@@ -1,6 +1,6 @@
 {
 "name": "grunt-resourcesbinder",
-"version": "1.0.1",
+"version": "1.0.5",
 "description": "Embed Bower dependencies to your source code.",
 "repository": "publicocean0/grunt-resourcesbinder",
 "author": {
@@ -16,9 +16,8 @@
 "dependencies"
 ],
 "files": [
-"lib/",
-"LICENSE",
-"resourcesbinder.js"
+"tasks/",
+"LICENSE"
 ],
 "licenses": [
 {
@@ -27,7 +26,7 @@
 ],
 "dependencies": {
 "bower-config": "^0.5.0",
-"glob": "^4.4.41",
+"glob": "^4.4.0",
 "lodash": "^2.4.1",
 "path": "^0.11.14",
 "fs": "^0.0.2",
