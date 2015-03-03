@@ -6,7 +6,7 @@ var BLOCK=/[ \t]*<!--\s*embed:*(\S*)\s+(mapped|inline|collapsed)\s*(\s+(uglified
 var md5 = require('MD5');
 var jsParser = require("uglify-js");
 var cssParser = require('uglifycss');
-grunt.registerMultiTask('embed', 'embedding files', function() {
+grunt.registerMultiTask('resourcesbinder', 'embedding files', function() {
 // Merge task-specific and/or target-specific options with these defaults.
 
 var options =extend({
