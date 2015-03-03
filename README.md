@@ -1,4 +1,4 @@
-# resourcesbinder
+# ResourcesBinder
 > Embed dependencies to your source code.
 
 
@@ -34,42 +34,24 @@ Insert placeholders in your code where your dependencies will be injected:
 </body>
 </html>
 ```
+The complete sintax is embed:[<filetype>] mapped|inline|collapsed   [minified|uglified]
+The options mean:
+mapped: it replace the link if the corrispondent dependency using the link replacement,
+inline: it replace directly the all sources mentioned using source replament,
+collapsed: it replace the link of a generated file using the link replacement(this generated file contains all the sources merged in).
 
-Let `resourcesbinder` work its magic:
+Set the the right options for your project :
+```js
+development : if you want add dev-dependencies and to force not minification 
 
+templates:{target:<path where to place the final html or frontend templates(like tpl,velocity,freemarker,...)>,sources:<array of html or frontend templates files>},
 
-
-
-```html
-<html>
-<head>
- <link href="/css/jquery.css">
-</head>
-<body>
-
-  <script src="js/jquery.js"></script>
-
-</body>
-</html>
+resources:{
+<file extension>: {replacement:{link:<text to replace with {{file}} injection> ,inline:<text to replace with {{source}} injection>},target:<final directory where to place the resources>},
+.......
+}.
 ```
-
-
-## Build Chain Integration
-
-
-
-### [Grunt](http://gruntjs.com)
-
-See [`grunt-wiredep`](https://github.com/publicocean0/grunt-embed).
-
-
-
-
-## Bower Overrides
-To override a property, or lack of, in one of your dependency's `bower.json` file, you may specify an `overrides` object in your own `bower.json`.
-
-As an example, this is what your `bower.json` may look like if you wanted to override `package-without-main`'s `main` file:
-
+The default setting is :
 ```js
 {
 separator: grunt.util.linefeed,
@@ -89,9 +71,44 @@ css:{replacement:{link:'<link rel="stylesheet" href="/css/{{file}}" />',inline:'
 }
 ```
 
+Let `embed` work its magic:
+
+
+
+
+```html
+<html>
+<head>
+ <link href="/css/jquery.css">
+
+</head>
+<body>
+
+  <script src="/js/jquery.js"></script>
+
+</body>
+</html>
+```
+
+
+## Build Chain Integration
+
+
+
+### [Grunt](http://gruntjs.com)
+
+See [`grunt-resourcesbinder`](https://github.com/publicocean0/grunt-resourcesbinder).
+
+
+
+
+## Bower Overrides
+To override a property, or lack of, in one of your dependency's `bower.json` file, you may specify an `overrides` object in your own `bower.json`.
+
+
 
 ## Contributing
-In lieu of a formal styleguide, take care to maintain the existing coding style. Add unit tests for any new or changed functionality. Lint and test your code using `npm test`.
+This package is used personally, but it might be extended for adding also npm command line.
 
 
 ## License
