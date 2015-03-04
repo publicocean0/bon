@@ -1,5 +1,5 @@
 # ResourcesBinder
-> Embed dependencies to your source code.
+> Bind bower dependencies to your source code.
 
 
 ## Getting Started
@@ -40,7 +40,7 @@ mapped: it replace the link if the corrispondent dependency using the link repla
 inline: it replace directly the all sources mentioned using source replament,
 collapsed: it replace the link of a generated file using the link replacement(this generated file contains all the sources merged in).
 In the following lines of this block you must insert all the dependencies (one for every line) with this sintax:
-```html
+```code
 
 <package_name>[<[filter]>]
 ```
@@ -67,7 +67,8 @@ development: false,
 minifyHandlers:{
 js:minifyJS,
 css:minifyCSS
-},  
+},
+development:false,// if true the block will be forced to bindind in mapped way , disabling also the minification.
 exclude:[],  
 templates:{target:'target/',sources:[]},
 resources:{
@@ -79,7 +80,7 @@ css:{replacement:{link:'<link rel="stylesheet" href="/css/{{file}}" />',inline:'
 }
 ```
 
-Let `embed` work its magic:
+Let `bind` work its magic:
 
 
 
@@ -113,7 +114,8 @@ See [`grunt-resourcesbinder`](https://github.com/publicocean0/grunt-resourcesbin
 ## Bower Overrides
 To override a property, or lack of, in one of your dependency's `bower.json` file, you may specify an `overrides` object in your own `bower.json`.
 
-
+## Maven
+You can integrate this plugin with maven using ['frontend-maven-plugin'](https://github.com/eirslett/frontend-maven-plugin).
 
 ## Contributing
 This package is used personally, but it might be extended for adding also npm command line.
