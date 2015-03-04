@@ -54,27 +54,35 @@ require('./lib/detect-dependencies')(config);
 function processBlock(text,callback){
 var oldpos=0;
 var pos=0;
-
+var newtext='';
 while (pos>=0) {
 pos=text.indexOf('<!--',oldpos);
 if (pos<0) break;
-pos+=4;
-var pos1=text.indexOf('bind',pos);
+
+var pos1=text.indexOf('bind',pos+4);
 if (pos1>0) {
 var pos2=text.indexOf('\n',pos1);
 if (pos2==-1) throw new Error('Expect a newline after a bind block at position '+pos);
-var match=BLOCK.exec(text.substring(pos1,pos2));
-if (match==null) throw new Error('Wrong block syntax at position '+pos);
-pos=text.indexOf('-->',pos2);
-if (pos==-1) throw new Error('Expect the end block at position '+pos);
-if (options.development) callback(match[1],match[2],match[4],text.substring(pos2,pos),pos2);
-else callback(match[1],'mapped',undefined,text.substring(pos2,pos),pos2);
+var buf=text.substring(pos1,pos2);
+var match=BLOCK.exec(buf);
+if (match==null) throw new Error('Wrong block syntax ('+buf+') at position '+pos);
+pos1=text.indexOf('-->',pos2);
+if (pos1==-1) throw new Error('Expect the end block at position '+pos);
+var buffer;
+if (options.development) buffer=callback(match[1],match[2],match[4],text.substring(pos2,pos1),pos2);
+else buffer=callback(match[1],'mapped',undefined,text.substring(pos2,pos1),pos2);
 
+newtext+=text.substring(oldpos,pos)+buffer;
+pos=pos1+3;console.log('---1');
+} else { console.log('---2');
+pos+=4;
+newtext+=text.substring(oldpos,pos);
 }
 oldpos=pos;
 
 }
-
+newtext+=text.substring(oldpos,text.length);
+return newtext;
 }
 function extend(source,target) {
 	    if (target instanceof Array  ) return target;
