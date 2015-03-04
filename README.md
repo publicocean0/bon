@@ -20,25 +20,33 @@ Insert placeholders in your code where your dependencies will be injected:
 ```html
 <html>
 <head>
-  <!-- embed:css mapped uglified 
+  <!-- bind:css mapped uglified 
        jquery
 
   -->
 
 </head>
 <body>
-  <!-- embed:js mapped uglified 
+  <!-- bind:js mapped uglified 
        jquery
 
   -->
 </body>
 </html>
 ```
-The complete sintax is embed:[<filetype>] mapped|inline|collapsed   [minified|uglified]
+The complete sintax is binder:[<filetype>] mapped|inline|collapsed   [minified|uglified]
 The options mean:
 mapped: it replace the link if the corrispondent dependency using the link replacement,
 inline: it replace directly the all sources mentioned using source replament,
 collapsed: it replace the link of a generated file using the link replacement(this generated file contains all the sources merged in).
+In the following lines of this block you must insert all the dependencies (one for every line) with this sintax:
+```html
+
+<package_name>[<[filter]>]
+```
+
+The filter is optional and permits to filter the resources of that package.
+
 
 Set the the right options for your project :
 ```js
