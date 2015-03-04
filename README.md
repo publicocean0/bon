@@ -44,7 +44,7 @@ In the following lines of this block you must insert all the top dependencies (o
 
 <package_name>[<[filter]>]
 ```
-The sub dependencies of the packages are automatically injected.
+The sub dependencies of the package are automatically injected.
 The filter is optional and permits to filter the resources of that package.
 
 
