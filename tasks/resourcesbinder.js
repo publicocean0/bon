@@ -73,8 +73,8 @@ if (options.development) buffer=callback(match[1],match[2],match[4],text.substri
 else buffer=callback(match[1],'mapped',undefined,text.substring(pos2,pos1),pos2);
 
 newtext+=text.substring(oldpos,pos)+buffer;
-pos=pos1+3;console.log('---1');
-} else { console.log('---2');
+pos=pos1+3;
+} else { 
 pos+=4;
 newtext+=text.substring(oldpos,pos);
 }
