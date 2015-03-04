@@ -39,12 +39,12 @@ The options mean:
 mapped: it replace the link if the corrispondent dependency using the link replacement,
 inline: it replace directly the all sources mentioned using source replament,
 collapsed: it replace the link of a generated file using the link replacement(this generated file contains all the sources merged in).
-In the following lines of this block you must insert all the dependencies (one for every line) with this sintax:
+In the following lines of this block you must insert all the top dependencies (one for every line) with this sintax:
 ```code
 
 <package_name>[<[filter]>]
 ```
-
+The sub dependencies of the packages are automatically injected.
 The filter is optional and permits to filter the resources of that package.
 
 
@@ -115,7 +115,7 @@ See [`grunt-resourcesbinder`](https://github.com/publicocean0/grunt-resourcesbin
 To override a property, or lack of, in one of your dependency's `bower.json` file, you may specify an `overrides` object in your own `bower.json`.
 
 ## Maven
-You can integrate this plugin with maven using ['frontend-maven-plugin'](https://github.com/eirslett/frontend-maven-plugin).
+You can integrate this plugin with maven using [frontend-maven-plugin](https://github.com/eirslett/frontend-maven-plugin).
 
 ## Contributing
 This package is used personally, but it might be extended for adding also npm command line.
