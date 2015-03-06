@@ -155,7 +155,37 @@ You can integrate this plugin with maven using [frontend-maven-plugin](https://g
 						</executions>
 					</plugin>
 ```
+using this Gruntfile.js:
+```js
+module.exports = function(grunt) {
+var project=(grunt.option( "project" )==undefined)?'':grunt.option( "project" );
+grunt.initConfig({
+// Before generating any new files, remove any previously-created files.
 
+resourcesbinder: {
+default_options: {
+templates:{target:'target/'+project+'/WEB-INF/ftl/',sources:['src/main/ftl/**/*.ftl']},
+development:grunt.option( "dev" )!==undefined,
+resources:{
+js: {replacement:{link:'<script src="<@utils.url\'/js/{{file}}\'/>"></script>',inline:'<script>{{source}}</script>'},target:'target/'+project+'/WEB-INF/js/'},
+css:{replacement:{link:'<link rel="stylesheet" href="<@utils.url\'/css/{{file}}\'/>" rel="stylesheet" media="screen" />',inline:'<style><{{source}}<stype>'},target:'target/'+project+'/WEB-INF/css/'}
+}
+
+}
+
+
+
+}
+});
+```
+
+
+
+	grunt.loadNpmTasks('grunt-resourcesbinder');
+	// Default task(s).
+	grunt.registerTask('default', ['resourcesbinder' ]);
+
+};
 ## Contributing
 This package is used personally, but it might be extended for adding also npm command line.
 
