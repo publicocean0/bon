@@ -20,21 +20,21 @@ Insert placeholders in your code where your dependencies will be injected:
 ```html
 <html>
 <head>
-  <!-- bind:css mapped uglified 
+  <!-- @bind:css mapped uglified 
        jquery
 
   -->
 
 </head>
 <body>
-  <!-- bind:js mapped uglified 
+  <!-- @bind:js mapped uglified 
        jquery
 
   -->
 </body>
 </html>
 ```
-The complete sintax is binder:[<filetype>] mapped|inline|collapsed   [minified|uglified]
+The complete sintax is @binder:[<filetype>] mapped|inline|collapsed   [minified|uglified]
 The options mean:
 mapped: it replace the link if the corrispondent dependency using the link replacement,
 inline: it replace directly the all sources mentioned using source replament,
@@ -64,6 +64,7 @@ The default setting is :
 {
 separator: grunt.util.linefeed,
 development: false, 
+localDependencies:{},
 minifyHandlers:{
 js:minifyJS,
 css:minifyCSS
@@ -115,7 +116,45 @@ See [`grunt-resourcesbinder`](https://github.com/publicocean0/grunt-resourcesbin
 To override a property, or lack of, in one of your dependency's `bower.json` file, you may specify an `overrides` object in your own `bower.json`.
 
 ## Maven
-You can integrate this plugin with maven using [frontend-maven-plugin](https://github.com/eirslett/frontend-maven-plugin).
+You can integrate this plugin with maven using [frontend-maven-plugin](https://github.com/eirslett/frontend-maven-plugin). A example of configuration is :
+```xml
+		<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<version>0.0.23</version>
+						<executions>
+							<execution>
+								<id>npm install</id>
+								<goals>
+									<goal>npm</goal>
+								</goals>
+								<configuration>
+									<arguments>install</arguments>
+								</configuration>
+							</execution>
+							<execution>
+								<id>bower install</id>
+								<goals>
+									<goal>bower</goal>
+								</goals>
+								<configuration>
+									<arguments>install</arguments>
+								</configuration>
+							</execution>
+							<execution>
+								<id>grunt build</id>
+								<goals>
+									<goal>grunt</goal>
+								</goals>
+								<configuration>
+									<arguments>--no-color</arguments>
+									<arguments>--project=${project.artifactId}</arguments>
+									<arguments>--dev</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+```
 
 ## Contributing
 This package is used personally, but it might be extended for adding also npm command line.
