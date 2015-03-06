@@ -32,6 +32,7 @@ return bucket;
 return bucket[property];
 };
 return {
+keys:function(){return Object.keys(bucket);},
 set: set,
 get: get,
 bucket:bucket

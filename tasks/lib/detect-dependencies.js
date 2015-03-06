@@ -20,6 +20,12 @@ $._.assign(allDependencies, config.get('bower.json').dependencies);
 if (config.get('dev-dependencies')) {
 $._.assign(allDependencies, config.get('bower.json').devDependencies);
 }
+var lo=config.get('local-dependencies');
+for(var l in lo){
+if (allDependencies[l]!==undefined) throw new Error('the package name '+l+' in le local dependencies is already defined in bower.json');
+}
+
+$._.assign(allDependencies, lo);
 
 
 $._.each(allDependencies, gatherInfo(config));
@@ -193,6 +199,7 @@ function collectDependencies(pdeps,deps){
  return pdeps;
 }
 
+
 /**
 * Sort the dependencies in the order we can best determine they're needed.
 *
@@ -201,15 +208,28 @@ function collectDependencies(pdeps,deps){
 * @return {array} the sorted items of 'path/to/main/files.ext' sorted by type
 */
 function prioritizeDependencies(config, fileType) {
-var dependencies = $._.toArray(config.get('global-dependencies').get()).
+var deps=config.get('global-dependencies');
+var keys=deps.keys();
+for(var e=0;e<keys.length;e++) {
+	var k=keys[e];
+	var d=deps.get(k);
+	var name=d.name;
+	if (k!==name){
+	console.log('Warning: the package '+k+' has a package name['+name+'] not correct in its bower.json!');
+	d.name=k;
+	}
+}
+var dependencies = $._.toArray(deps.get()).
 filter(function (dependency) {
-
 return $._.contains(dependency.type, fileType);
 });
 var tdep={};
 dependencies.forEach(function(f){	
+	
 tdep[f.name]=reduceDepInfo(config.get('exclude'),f,fileType,[]);	
 });
+
+
 return tdep;
 
 }

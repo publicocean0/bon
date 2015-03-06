@@ -2,8 +2,8 @@
 'use strict';
 module.exports = function(grunt) {
 // Internal lib.
-var BLOCK=/^bind:*(\S*)\s+(mapped|inline|collapsed)\s*(\s+(uglified|minified)\s*)?$/gi;
-var DEPBLOCK=/\s*(\w+)\s*(\[([^\]]*)\])?\s*/gi;
+var BLOCK=/^@bind:*(\S*)\s+(mapped|inline|collapsed)\s*(\s+(uglified|minified)\s*)?$/i;
+var DEPBLOCK=/\s*(\w+)\s*(\[([^\]]*)\])?\s*/i;
 var md5 = require('MD5');
 var jsParser = require("uglify-js");
 var cssParser = require('uglifycss');
@@ -13,6 +13,7 @@ grunt.registerMultiTask('resourcesbinder', 'embedding files', function() {
 var options =extend({
 separator: grunt.util.linefeed,
 development: false, 
+localDependencies:{},
 minifyHandlers:{
 js:minifyJS,
 css:minifyCSS
@@ -27,6 +28,18 @@ css:{replacement:{link:'<link rel="stylesheet" href="/css/{{file}}" />',inline:'
 
 
 },this.data);
+for(var key in options.localDependencies){
+var l=options.localDependencies;
+if (l.main==undefined) throw new Error('main entry is not defined in local item '+k);
+if (!((l.main instanceof String )|(l.main instanceof Array ))) throw new Error('main entry contains a wrong data type in local item '+k);
+if (l.dependencies==undefined) l.dependencies={};
+if (l.dependencies instanceof Array ) throw new Error('dependencies entry contains a wrong data type in local item '+k);
+for(var key1 in l.dependencies){
+	var dd=l.dependencies[key1];
+if (d == undefined) throw new Error('dependency entry is undefined in local item '+k+'.'+key1);
+if (!(d instanceof String) ) throw new Error('dependency entry contains a wrong data type in local item '+k+'.'+key1);
+}
+}
 var $ = {
 bowerConfig: require('bower-config'),
  _: require('lodash'),
@@ -46,6 +59,7 @@ config.set
 ('detectable-file-types', Object.keys(options.resources))
 ('exclude', Array.isArray(options.exclude) ? options.exclude : [ options.exclude ])
 ('global-dependencies', helpers.createStore())
+('local-dependencies',options.localDependencies)
 ('ignore-path', options.ignorePath)
 ('overrides', $._.extend({}, config.get('bower.json').overrides, options.overrides));
 require('./lib/detect-dependencies')(config);
@@ -59,7 +73,7 @@ while (pos>=0) {
 pos=text.indexOf('<!--',oldpos);
 if (pos<0) break;
 
-var pos1=text.indexOf('bind',pos+4);
+var pos1=text.indexOf('@bind',pos+4);
 if (pos1>0) {
 var pos2=text.indexOf('\n',pos1);
 if (pos2==-1) throw new Error('Expect a newline after a bind block at position '+pos);
@@ -69,7 +83,7 @@ if (match==null) throw new Error('Wrong block syntax ('+buf+') at position '+pos
 pos1=text.indexOf('-->',pos2);
 if (pos1==-1) throw new Error('Expect the end block at position '+pos);
 var buffer;
-if (options.development) buffer=callback(match[1],match[2],match[4],text.substring(pos2,pos1),pos2);
+if (!options.development) buffer=callback(match[1],match[2],match[4],text.substring(pos2,pos1),pos2);
 else buffer=callback(match[1],'mapped',undefined,text.substring(pos2,pos1),pos2);
 
 newtext+=text.substring(oldpos,pos)+buffer;
@@ -135,7 +149,7 @@ function getLinkReplacement(repl,depname,mimified,filetype){
 	// the path of file is inside the replacement because front-end logic is unknow here
 return repl.replace('{{file}}',renderLinkFile(depname,mimified,filetype))+options.separator
 }
- function getAbsoluteDir(f){
+ function getAbsolutePath(f){
 if (f.indexOf($.path.sep)==0) return f;
 return cwd+f;
 }
@@ -163,8 +177,10 @@ function parseText(filepath,replacements,commands){
  var text = grunt.file.read(filepath);
  var gdeps={};
  var index=0;
- return processBlock(text, function(filetype,replacetype,minified,files,offset)
-    {   
+ var adeps=config.get('global-dependencies');
+ var newtext=processBlock(text, function(filetype,replacetype,minified,files,offset)
+    {   filetype=filetype.toLowerCase();
+		if (gdeps[filetype]==undefined) gdeps[filetype]={};
 		grunt.log.writeln('\t-Detecting block type '+filetype+' at offset '+offset);
 		if (config.get('detectable-file-types').indexOf(filetype)==-1){
 		throw new Error("file type '"+filetype+"' present in a file '"+filepath+"' block  is not defined" );	
@@ -176,9 +192,9 @@ function parseText(filepath,replacements,commands){
 			if (tmp!=='') {afiles.push(tmp);}
 		}
        
-		filetype=filetype.toLowerCase();
+		
 		minified=(minified===undefined)?undefined:minified.trim();
-		var ismini=!options.development && minified!==undefined;
+		var ismini=minified!==undefined;
 		var ftypedeps=config.get('global-dependencies-sorted')[filetype];
 		var buffer='';
 		var isinline=(replacetype==='inline');
@@ -187,19 +203,28 @@ function parseText(filepath,replacements,commands){
 				var collapsedFiles=[];
 	    }
 	    var repl=replacements[filetype].replacement[(isinline)?'inline':'link'];
-		var dest=getAbsoluteDir(replacements[filetype].target);	
+		var dest=getAbsolutePath(replacements[filetype].target);	
 		for(var ii=0;ii<afiles.length;ii++) {
-			var match=DEPBLOCK.exec(afiles[ii]);
 			
+			var match=DEPBLOCK.exec(afiles[ii]);
+			if (match==null){
+				throw new Error('Invalid syntax at offset '+offset+": '"+afiles[ii]+"'");
+			
+			}
+
             var depname=match[1];
 			var dep=ftypedeps[depname];
 			var filter=match[3];
 			if (dep==undefined) {
+				if (adeps.get(depname)==undefined){
 				var error = new Error('Cannot find where you keep your Bower dependecy '+depname);
 				error.code = 'BOWER_DEPENDENCY_MISSING';
 				throw error;
+			} 
+	
+			continue;
 			}
-            grunt.log.write('\t-Injecting dependency \''+depname+"'"+((filter==null)?':':(' filtered by \''+filter+"':")));
+            grunt.log.write('\t\t-Injecting dependency \''+depname+"'"+((filter==null)?':':(' filtered by \''+filter+"':")));
 		    var resourcesInjected=0;
             var found=false;
 			
@@ -207,8 +232,10 @@ function parseText(filepath,replacements,commands){
 			for(i=0;i<subdeps.length;i++){
 			  var name=subdeps[i].name;
 			  var depi=ftypedeps[name];
-              if (gdeps[name]!==undefined) continue;   
-               gdeps[name]=true;  
+              if (gdeps[filetype][name]!==undefined) continue;  
+              if (depi==undefined) continue; 
+               
+               gdeps[filetype][name]=true;  
                var mains=filterMains(depi.main,filter); 
                resourcesInjected+=mains.length;
 			   if (!found && resourcesInjected>0) {
@@ -217,14 +244,14 @@ function parseText(filepath,replacements,commands){
 			   }    		
                for(j=0;j<mains.length;j++){
 			   var m=mains[j];   
-			   grunt.log.write('\t\t-file  \''+m+"'");
+			   grunt.log.writeln('\t\t\t-Resource  \''+m+"'");
 		 
 			    var bf= removeExtension(getFileName(m));        		
 			    if (replacetype==='mapped') {
 			    buffer+=getLinkReplacement(repl,bf,ismini,filetype);
 			    commands.push({command:'cp',source:m,dest:dest+renderLinkFile(bf,ismini,filetype),minified:minified});
 			    } else   if (replacetype==='inline') {
-				      if (ismini) buffer+=options.minifyHandlers[filetype](m,minified=='minified');
+				      if (ismini) buffer+=options.minifyHandlers[filetype](m,minified!='minified');
 			    else buffer+=getContent(m);	    
 			    }else   if (replacetype==='collapsed') {			 			     
 			     collapsedFiles.push(m);
@@ -233,7 +260,7 @@ function parseText(filepath,replacements,commands){
 			 
               
 			}
-			if (gdeps[depname]===undefined) {
+			if (gdeps[filetype][depname]===undefined) {
 			  var mains=filterMains(dep.main,filter);
 			  resourcesInjected+=mains.length;
 			  if (!found && resourcesInjected>0) {
@@ -242,20 +269,20 @@ function parseText(filepath,replacements,commands){
 			   }   
 			  for(i=0;i<mains.length;i++){
 			  var m=mains[i]; 
-			  grunt.log.writeln('\t\t-Resource  \''+m+"'");  
+			  grunt.log.writeln('\t\t\t-Resource  \''+m+"'");  
 			  var bf= removeExtension(getFileName(m));    
 			   if (replacetype==='mapped') { 		
 			   buffer+=getLinkReplacement(repl,bf,ismini,filetype);
 			   commands.push({command:'cp',source:m,dest:dest+renderLinkFile(bf,ismini,filetype),minified:minified});
 		       } else if (replacetype==='inline') {
-			      if (ismini) buffer+=options.minifyHandlers[filetype](m,minified=='minified');
+			      if (ismini) buffer+=options.minifyHandlers[filetype](m,minified!='minified');
 			    else buffer+=getContent(m);	
 				    
 			    }else   if (replacetype==='collapsed') {				 
 			     collapsedFiles.push(m);
 			    }
 			}
-             gdeps[depname]=true;
+             gdeps[filetype][depname]=true;
 		    }
 			if (resourcesInjected==0){
 			   grunt.log.writeln("no resources found");
@@ -274,7 +301,7 @@ function parseText(filepath,replacements,commands){
   
     }
 );	
-	
+return newtext;	
 }
 
 function getFileType(filepath){
@@ -290,6 +317,16 @@ map[ch]=true;
 return true;
 } else return false;
 });
+}
+
+function save(s,t){
+	s=getAbsolutePath(s);
+	var text = md5(grunt.file.read(s));
+	if (text!=md5(t)) { 
+	grunt.file.write(s, t);
+	return true;
+	}
+	return false;
 }
 
 function minifyJS(f,mangled){
@@ -327,8 +364,8 @@ var source;
 if (c.minified!==undefined) {
 source=options.minifyHandlers[getFileType(c.source)](c.source,c.minified!=='minified');
 } else source=getContent(c.source);	
-grunt.log.writeln('Saving file in ' + c.dest + '.');
-grunt.file.write(c.dest, source);
+if (save(c.dest, source)) grunt.log.writeln('\t-' + c.dest + ' saved');
+else grunt.log.writeln('\t-' + c.dest + ' unchanged');
 break;
 }
 case "collapse":{
@@ -343,8 +380,8 @@ c.sources.forEach(function(s){
 source+=getContent(s);	
 });
 }
-grunt.log.writeln('Saving file in ' + c.dest + '.');
-grunt.file.write(c.dest, source);	
+if (save(c.dest, source)) grunt.log.writeln('\t-' + c.dest + ' saved');
+else grunt.log.writeln('\t-' + c.dest + ' unchanged');	
 break;
 }
 }
@@ -387,9 +424,13 @@ var replacements=options.resources;
 var dest=filemap.dest;
 
 // Print a success message.
-grunt.log.writeln('* Processing ' + filepath+" => "+dest);
+grunt.log.writeln('* Processing ' + filepath+":");
 var content=parseText(filepath,replacements,commands);
-grunt.file.write(dest, content);
+
+if (save(dest, content)) 
+grunt.log.writeln("\t -Saving to "+dest);
+else grunt.log.writeln('\t -Saving is skipped:file '+dest+' is unchanged');
+
 });
 
 
