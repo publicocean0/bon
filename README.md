@@ -1,5 +1,5 @@
 # ResourcesBinder
-> Bind bower dependencies to your source code.
+> Bind bower or local dependencies to your source code.
 
 
 ## Getting Started
