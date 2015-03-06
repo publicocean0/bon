@@ -178,15 +178,13 @@ css:{replacement:{link:'<link rel="stylesheet" href="<@utils.url\'/css/{{file}}\
 
 }
 });
-```
-
-
-
 	grunt.loadNpmTasks('grunt-resourcesbinder');
 	// Default task(s).
 	grunt.registerTask('default', ['resourcesbinder' ]);
 
 };
+```
+
 ## Contributing
 This package is used personally, but it might be extended for adding also npm command line.
 
