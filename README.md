@@ -20,25 +20,26 @@ Insert placeholders in your code where your dependencies will be injected:
 ```html
 <html>
 <head>
-  <!-- @bind:css mapped uglified 
+  <!-- @bind:css linked separated uglified 
        jquery
 
   -->
 
 </head>
 <body>
-  <!-- @bind:js mapped uglified 
+  <!-- @bind:js linked separated uglified 
        jquery
 
   -->
 </body>
 </html>
 ```
-The complete sintax is @binder:[<filetype>] mapped|inline|collapsed   [minified|uglified]
+The complete sintax is @binder:[<filetype>] <linked|inline>  <aggregated|separated>  [minified|uglified]
 The options mean:
-mapped: it replace the link if the corrispondent dependency using the link replacement,
+linked: it replace the link if the corrispondent dependency using the link replacement,
 inline: it replace directly the all sources mentioned using source replament,
-collapsed: it replace the link of a generated file using the link replacement(this generated file contains all the sources merged in).
+aggregated: it aggregate all dependencies,
+separated : it handles each dependency separately.
 In the following lines of this block you must insert all the top dependencies (one for every line) with this sintax:
 ```code
 
@@ -168,7 +169,7 @@ templates:{target:'target/'+project+'/WEB-INF/ftl/',sources:['src/main/ftl/**/*.
 development:grunt.option( "dev" )!==undefined,
 resources:{
 js: {replacement:{link:'<script src="<@utils.url\'/js/{{file}}\'/>"></script>',inline:'<script>{{source}}</script>'},target:'target/'+project+'/WEB-INF/js/'},
-css:{replacement:{link:'<link rel="stylesheet" href="<@utils.url\'/css/{{file}}\'/>" rel="stylesheet" media="screen" />',inline:'<style><{{source}}<stype>'},target:'target/'+project+'/WEB-INF/css/'}
+css:{replacement:{link:'<link rel="stylesheet" href="<@utils.url\'/css/{{file}}\'/>" rel="stylesheet" media="screen" />',inline:'<style><{{source}}</style>'},target:'target/'+project+'/WEB-INF/css/'}
 }
 
 }
