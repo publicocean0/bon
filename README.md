@@ -69,7 +69,7 @@ The default setting is :
 separator: grunt.util.linefeed,
 development: false, 
 localDependencies:{},
-minifyHandlers:{
+minifyHandlers:// internal handlers can be overriden
 js:minifyJS,
 css:minifyCSS
 },
@@ -78,7 +78,7 @@ exclude:[],
 templates:{target:'target/',sources:[]},
 resources:{
 js: {replacement:{link:'<script src="/js/{{file}}"></script>',inline:'<script>{{source}}</script>'},target:'js/'},
-css:{replacement:{link:'<link rel="stylesheet" href="/css/{{file}}" />',inline:'<style><{{source}}<stype>'},target:'css/'}
+css:{replacement:{link:'<link rel="stylesheet" href="/css/{{file}}" />',inline:'<style><{{source}}</style>'},target:'css/'}
 },
 
 
