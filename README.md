@@ -51,7 +51,7 @@ The filter is optional and permits to filter the resources of that package.
 Set the the right options for your project :
 ```js
 development : if you want add dev-dependencies and to force not minification 
-
+localDependencies: you can add dependencies not deployed in bower system , but just locally in your project,
 templates:{target:<path where to place the final html or frontend templates(like tpl,velocity,freemarker,...)>,sources:<array of html or frontend templates files>},
 
 resources:{
@@ -155,7 +155,7 @@ You can integrate this plugin with maven using [frontend-maven-plugin](https://g
 						</executions>
 					</plugin>
 ```
-using this Gruntfile.js:
+using this Gruntfile.js example:
 ```js
 module.exports = function(grunt) {
 var project=(grunt.option( "project" )==undefined)?'':grunt.option( "project" );
