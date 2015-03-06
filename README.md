@@ -34,7 +34,7 @@ Insert placeholders in your code where your dependencies will be injected:
 </body>
 </html>
 ```
-The complete sintax is 
+The complete syntax is 
 ```code
 @binder:[<filetype>] <linked|inline>  <aggregated|separated>  [minified|uglified]
 ```
