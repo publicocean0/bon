@@ -34,7 +34,10 @@ Insert placeholders in your code where your dependencies will be injected:
 </body>
 </html>
 ```
-The complete sintax is @binder:[<filetype>] <linked|inline>  <aggregated|separated>  [minified|uglified]
+The complete sintax is 
+```code
+@binder:[<filetype>] <linked|inline>  <aggregated|separated>  [minified|uglified]
+```
 The options mean:
 linked: it replace the link if the corrispondent dependency using the link replacement,
 inline: it replace directly the all sources mentioned using source replament,
