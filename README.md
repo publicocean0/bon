@@ -53,8 +53,9 @@ where search is optional and has this syntax :
 <[<op> "<[filter]>" ]>
 ```
 
-	where op comparator is :
-	```code
+where op comparator is :
+
+```code
 	== : equals
 	!= : not equals
 	=^ : starts with
