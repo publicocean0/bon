@@ -195,7 +195,7 @@ if (packageHandler!=undefined) {
 		return acc;
 		}, []));
 	   dep.main=mains.concat(dep.main);
-	   dep.type = $._.chain(mains).map($.path.extname).unique().value();
+	   dep.type = $._.chain(dep.main).map($.path.extname).unique().value();
 	   
 	}
 	var keys=$._.unique(Object.keys(deps));

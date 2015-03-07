@@ -262,7 +262,7 @@ function parseText(filepath,replacements,commands){
         
 		minified=(minified===undefined)?undefined:minified.trim();
 		var ismini=minified!==undefined;
-		var ftypedeps=config.get('global-dependencies-sorted')[filetype];
+		var ftypedeps=config.get('global-dependencies-sorted')[filetype]; 
 		var buffer='';
 		var isinline=(replacetype==='inline');
 	    if (aggrtype==='aggregated' && replacetype==='linked'){
