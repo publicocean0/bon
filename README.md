@@ -3,7 +3,7 @@
 
 
 ## Getting Started
-Install the module with [npm](https://npmjs.org):
+Install the module with [npm](https://npmjs.org): 
 
 ```bash
 $ npm install --save grunt-resourcesbinder
@@ -43,7 +43,7 @@ linked: it replace the link if the corrispondent dependency using the link repla
 inline: it replace directly the all sources mentioned using source replament,
 aggregated: it aggregate all dependencies,
 separated : it handles each dependency separately.
-In the following lines of this block you must insert all the top dependencies (one for every line) with this sintax:
+In the following lines of this block you must insert all the top dependencies (one for every line) with this syntax:
 ```code
 
 <package_name><search> <nodeps>
