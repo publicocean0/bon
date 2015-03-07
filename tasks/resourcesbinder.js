@@ -2,17 +2,18 @@
 'use strict';
 module.exports = function(grunt) {
 // Internal lib.
-var BLOCK=/^@bind:*(\S*)\s+(mapped|inline|collapsed)\s*(\s+(uglified|minified)\s*)?$/i;
-var DEPBLOCK=/\s*(\w+)\s*(\[([^\]]*)\])?\s*/i;
+var BLOCK=/^@bind:*(\S*)\s+(inline|linked)\s+(separated|aggregated)\s*(\s+(uglified|minified)\s*)?$/i;
+var DEPBLOCK=/^\s*((#.*)?|(([a-zA-Z0-9_\-.]+)(\s*\[((=\~)|(!\~)|(==)|(!=)|(=\^)|(!\^)|(=\$)|(!\$)|(=\?)|(!\?))\s+"(.*)"\s*\])?(\s+nodeps)?\s*))$/i;
 var md5 = require('MD5');
 var jsParser = require("uglify-js");
 var cssParser = require('uglifycss');
 grunt.registerMultiTask('resourcesbinder', 'embedding files', function() {
 // Merge task-specific and/or target-specific options with these defaults.
- 
+
 var options =extend({
 separator: grunt.util.linefeed,
 development: false, 
+packageHandler:undefined,
 localDependencies:{},
 minifyHandlers:{
 js:minifyJS,
@@ -55,6 +56,7 @@ config.set
 ('bower.json', options.bowerJson || JSON.parse($.fs.readFileSync($.path.join(cwd, './bower.json'))))
 ('bower-directory', options.directory || findBowerDirectory(cwd))
 ('cwd', cwd)
+('package-handler',options.packageHandler)
 ('dev-dependencies', options.development||false)
 ('detectable-file-types', Object.keys(options.resources))
 ('exclude', Array.isArray(options.exclude) ? options.exclude : [ options.exclude ])
@@ -64,6 +66,24 @@ config.set
 ('overrides', $._.extend({}, config.get('bower.json').overrides, options.overrides));
 require('./lib/detect-dependencies')(config);
 
+function searchStartTagBlock(text,pos){
+var ch;
+var size=text.length;
+
+while(pos<size){
+ch=text.charAt(pos);
+if (ch==' ' || ch=='\t'){
+	pos++; 
+	continue;
+} else {
+if (text.indexOf('@bind',pos)==pos) return pos;
+else return -1;
+}
+} 
+
+
+return -1;
+}
 
 function processBlock(text,callback){
 var oldpos=0;
@@ -73,7 +93,7 @@ while (pos>=0) {
 pos=text.indexOf('<!--',oldpos);
 if (pos<0) break;
 
-var pos1=text.indexOf('@bind',pos+4);
+var pos1=searchStartTagBlock(text,pos+4);
 if (pos1>0) {
 var pos2=text.indexOf('\n',pos1);
 if (pos2==-1) throw new Error('Expect a newline after a bind block at position '+pos);
@@ -83,8 +103,8 @@ if (match==null) throw new Error('Wrong block syntax ('+buf+') at position '+pos
 pos1=text.indexOf('-->',pos2);
 if (pos1==-1) throw new Error('Expect the end block at position '+pos);
 var buffer;
-if (!options.development) buffer=callback(match[1],match[2],match[4],text.substring(pos2,pos1),pos2);
-else buffer=callback(match[1],'mapped',undefined,text.substring(pos2,pos1),pos2);
+if (!options.development) buffer=callback(match[1],match[2],match[3],match[5],text.substring(pos2,pos1),pos2);
+else buffer=callback(match[1],'linked','separated',undefined,text.substring(pos2,pos1),pos2);
 
 newtext+=text.substring(oldpos,pos)+buffer;
 pos=pos1+3;
@@ -100,6 +120,7 @@ return newtext;
 }
 function extend(source,target) {
 	    if (target instanceof Array  ) return target;
+	    if (target instanceof Function  ) return target;
         if (target instanceof Object  ){
 			var s=source;
 			for (var prop in target) {
@@ -154,23 +175,69 @@ if (f.indexOf($.path.sep)==0) return f;
 return cwd+f;
 }
 
-function filterMains(mains,filter){
+function filterMains(mains,op,filter){
 	
 	
 	
-            if (filter!=null){
-			    if (/^\/.+\/$/.test(filter)){
-			   var regex=new RegExp(filter);
+            if (op!=null){
+				switch(op){
+				case "==": 	
+				return mains.filter(function(m){
+				return m==filter;  
+			   });
+			    case "!=":
 			    return mains.filter(function(m){
+				return m!=filter;  
+			   });
+			    case "=~":	 return mains.filter(function(m){
 				return regex.test(m);  
-			   });
-			   }else {
-			    return mains.filter(function(m){
+			    });
+			    case "!~":	 return mains.filter(function(m){
+				return !regex.test(m);  
+			    });
+			    case "=^":	 return mains.filter(function(m){
+				return m.indexOf(filter)==0;  
+			    });
+			    case "!^":	 return mains.filter(function(m){
+				return m.indexOf(filter)!=0;  
+			    });
+			     case "=$":	 return mains.filter(function(m){
+				return m.lastIndexOf(filter)==m.length-filter.length;  
+			    });
+			    case "!$":	 return mains.filter(function(m){
+				return m.lastIndexOf(filter)!==m.length-filter.length;  
+			    });
+			    case "=?":	 return mains.filter(function(m){
 				return m.indexOf(filter)>=0;  
-			   });
-			   }
+			    });
+			    case "!?":	 return mains.filter(function(m){
+				return m.indexOf(filter)<0;  
+			    });
+			    default:return mains;
+				}
+				
+			   
 			   
 			   } else return mains;
+}
+
+function inject(replacetype,aggrtype,buffer,repl,bf,ismini,filetype,commands,collapsedFiles,m,dest,minified){
+	
+	    if (replacetype==='linked') {
+			     if (aggrtype==='separated') {
+					 buffer+=getLinkReplacement(repl,bf,ismini,filetype);
+					 commands.push({command:'cp',source:m,dest:dest+renderLinkFile(bf,ismini,filetype),minified:minified});
+			     } else {
+					 collapsedFiles.push(m);
+				 }
+			    } else   if (replacetype==='inline') {
+					  var tmp;
+				      if (ismini) tmp=options.minifyHandlers[filetype](m,minified!='minified');
+			    else tmp+=getContent(m);	
+			         if (aggrtype==='aggregated') buffer+=tmp;
+			         else buffer+=getSourceReplacement(repl,tmp);
+			    }
+	return buffer;		    	
 }
 
 function parseText(filepath,replacements,commands){
@@ -178,7 +245,7 @@ function parseText(filepath,replacements,commands){
  var gdeps={};
  var index=0;
  var adeps=config.get('global-dependencies');
- var newtext=processBlock(text, function(filetype,replacetype,minified,files,offset)
+ var newtext=processBlock(text, function(filetype,replacetype,aggrtype,minified,files,offset)
     {   filetype=filetype.toLowerCase();
 		if (gdeps[filetype]==undefined) gdeps[filetype]={};
 		grunt.log.writeln('\t-Detecting block type '+filetype+' at offset '+offset);
@@ -192,18 +259,20 @@ function parseText(filepath,replacements,commands){
 			if (tmp!=='') {afiles.push(tmp);}
 		}
        
-		
+        
 		minified=(minified===undefined)?undefined:minified.trim();
 		var ismini=minified!==undefined;
 		var ftypedeps=config.get('global-dependencies-sorted')[filetype];
 		var buffer='';
 		var isinline=(replacetype==='inline');
-	    if (replacetype==='collapsed'){
+	    if (aggrtype==='aggregated' && replacetype==='linked'){
 				var collapsedname=getCollapsedFile(filepath,index);
 				var collapsedFiles=[];
 	    }
 	    var repl=replacements[filetype].replacement[(isinline)?'inline':'link'];
 		var dest=getAbsolutePath(replacements[filetype].target);	
+		
+
 		for(var ii=0;ii<afiles.length;ii++) {
 			
 			var match=DEPBLOCK.exec(afiles[ii]);
@@ -211,90 +280,95 @@ function parseText(filepath,replacements,commands){
 				throw new Error('Invalid syntax at offset '+offset+": '"+afiles[ii]+"'");
 			
 			}
-
-            var depname=match[1];
+            if (match[2]!=null) continue;
+            var depname=match[4];
 			var dep=ftypedeps[depname];
-			var filter=match[3];
+			var filter=match[17];
+			var op=match[6];
+			var nodependencies=match[18]!=null;
+			grunt.log.write('\t\t-Injecting dependency \''+depname+"'"+((op==null)?':':(' filtered by '+op+' \''+filter+"':")));
 			if (dep==undefined) {
 				if (adeps.get(depname)==undefined){
-				var error = new Error('Cannot find where you keep your Bower dependecy '+depname);
+				var error = new Error("Cannot find where you keep your Bower dependecy '"+depname+"'");
 				error.code = 'BOWER_DEPENDENCY_MISSING';
 				throw error;
 			} 
-	
+	        grunt.log.writeln('no resources');
 			continue;
 			}
-            grunt.log.write('\t\t-Injecting dependency \''+depname+"'"+((filter==null)?':':(' filtered by \''+filter+"':")));
+            
 		    var resourcesInjected=0;
             var found=false;
-			
+			if (gdeps[filetype][depname]==undefined) gdeps[filetype][depname]=[]; 
 			var subdeps=dep.dependencies;
+			if (!nodependencies){
 			for(i=0;i<subdeps.length;i++){
 			  var name=subdeps[i].name;
 			  var depi=ftypedeps[name];
-              if (gdeps[filetype][name]!==undefined) continue;  
-              if (depi==undefined) continue; 
                
-               gdeps[filetype][name]=true;  
-               var mains=filterMains(depi.main,filter); 
-               resourcesInjected+=mains.length;
-			   if (!found && resourcesInjected>0) {
+             if (depi==undefined) {
+				if (adeps.get(name)==undefined){
+				var error = new Error("Cannot find where you keep your Bower dependecy '"+name+"'");
+				error.code = 'BOWER_DEPENDENCY_MISSING';
+				throw error;
+			} 
+	      
+			continue;
+			}
+              if (gdeps[filetype][name]==undefined) gdeps[filetype][name]=[]; 
+               
+               var mains=depi.main; 
+               
+		  		
+               for(j=0;j<mains.length;j++){
+			   var m=mains[j];  
+			   if (gdeps[filetype][name].indexOf(m)>=0) continue;
+			   resourcesInjected+=1;
+			   gdeps[filetype][name].push(m);
+			   if (!found) {
 			   found=true;
 			   grunt.log.writeln();
-			   }    		
-               for(j=0;j<mains.length;j++){
-			   var m=mains[j];   
+			   }  
 			   grunt.log.writeln('\t\t\t-Resource  \''+m+"'");
 		 
 			    var bf= removeExtension(getFileName(m));        		
-			    if (replacetype==='mapped') {
-			    buffer+=getLinkReplacement(repl,bf,ismini,filetype);
-			    commands.push({command:'cp',source:m,dest:dest+renderLinkFile(bf,ismini,filetype),minified:minified});
-			    } else   if (replacetype==='inline') {
-				      if (ismini) buffer+=options.minifyHandlers[filetype](m,minified!='minified');
-			    else buffer+=getContent(m);	    
-			    }else   if (replacetype==='collapsed') {			 			     
-			     collapsedFiles.push(m);
-			    }
+		        buffer=inject(replacetype,aggrtype,buffer,repl,bf,ismini,filetype,commands,collapsedFiles,m,dest,minified);
+			
 			   }
 			 
               
 			}
-			if (gdeps[filetype][depname]===undefined) {
-			  var mains=filterMains(dep.main,filter);
-			  resourcesInjected+=mains.length;
-			  if (!found && resourcesInjected>0) {
+            }
+			  var mains=filterMains(dep.main,op,filter);
+			  for(i=0;i<mains.length;i++){
+			  var m=mains[i]; 
+			  if (gdeps[filetype][depname].indexOf(m)>=0) continue;
+			  gdeps[filetype][depname].push(m);
+			  resourcesInjected+=1;
+			  if (!found) {
 			   found=true;
 			   grunt.log.writeln();
 			   }   
-			  for(i=0;i<mains.length;i++){
-			  var m=mains[i]; 
 			  grunt.log.writeln('\t\t\t-Resource  \''+m+"'");  
-			  var bf= removeExtension(getFileName(m));    
-			   if (replacetype==='mapped') { 		
-			   buffer+=getLinkReplacement(repl,bf,ismini,filetype);
-			   commands.push({command:'cp',source:m,dest:dest+renderLinkFile(bf,ismini,filetype),minified:minified});
-		       } else if (replacetype==='inline') {
-			      if (ismini) buffer+=options.minifyHandlers[filetype](m,minified!='minified');
-			    else buffer+=getContent(m);	
-				    
-			    }else   if (replacetype==='collapsed') {				 
-			     collapsedFiles.push(m);
-			    }
+			  var bf= removeExtension(getFileName(m));  
+			   
+			  buffer=inject(replacetype,aggrtype,buffer,repl,bf,ismini,filetype,commands,collapsedFiles,m,dest,minified);
 			}
-             gdeps[filetype][depname]=true;
-		    }
+
 			if (resourcesInjected==0){
 			   grunt.log.writeln("no resources found");
 			}
 		}
-        if (replacetype==='collapsed'){
-		 commands.push({command:'collapse',sources:collapsedFiles,dest:dest+renderLinkFile(collapsedname,ismini,filetype),minified:minified});
-		 buffer=getLinkReplacement(isinline,repl,collapsedname,ismini,filetype);
+        if (aggrtype==='aggregated'){
+		 if (replacetype==='linked'){ 
+	     commands.push({command:'collapse',sources:collapsedFiles,dest:dest+renderLinkFile(collapsedname,ismini,filetype),minified:minified});
+		 buffer=getLinkReplacement(repl,collapsedname,ismini,filetype);
+		
 		 index++;
         } else if (replacetype==='inline') {
 		 buffer=getSourceReplacement(repl,buffer);
 		}
+	    }
 	    return buffer;
 		
 		
@@ -321,12 +395,19 @@ return true;
 
 function save(s,t){
 	s=getAbsolutePath(s);
-	var text = md5(grunt.file.read(s));
-	if (text!=md5(t)) { 
-	grunt.file.write(s, t);
+	try {
+	var m=grunt.file.read(s);
+	if ((md5(m))!=md5(t)) { 
+	 grunt.file.write(s, t);
 	return true;
-	}
+	} 
 	return false;
+   }catch(e){
+	   grunt.file.write(s, t);
+   return true;
+   }
+   
+	
 }
 
 function minifyJS(f,mangled){
