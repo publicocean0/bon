@@ -46,9 +46,28 @@ separated : it handles each dependency separately.
 In the following lines of this block you must insert all the top dependencies (one for every line) with this sintax:
 ```code
 
-<package_name>[<[filter]>]
+<package_name><search> <nodeps>
 ```
-The sub dependencies of the package are automatically injected.
+where search is optional and has this syntax :
+```code
+<[<op> "<[filter]>" ]>
+```
+
+	where op comparator is :
+	```code
+	== : equals
+	!= : not equals
+	=^ : starts with
+	!^ : not starts with
+	=$ : ends with
+	!$ : not ends with
+	=? : contains 
+	!? : not contains
+
+```
+where nodeps is optional and force to not inject the dependencies.
+
+The sub dependencies of the package are automatically injected if 'nodeps' parameter is set.
 The filter is optional and permits to filter the resources of that package.
 
 
