@@ -3,7 +3,7 @@
 module.exports = function(grunt) {
 // Internal lib.
 var BLOCK=/^@bind:*(\S*)\s+(inline|linked)\s+(separated|aggregated)\s*(\s+(uglified|minified)\s*)?$/i;
-var DEPBLOCK=/^\s*((#.*)?|(([a-zA-Z0-9_\-.]+)(\s*\[((=\~)|(!\~)|(==)|(!=)|(=\^)|(!\^)|(=\$)|(!\$)|(=\?)|(!\?))\s+"(.*)"\s*\])?(\s+nodeps)?\s*))$/i;
+var DEPBLOCK=/^\s*((#.*)?|(([a-zA-Z0-9_\-.]+)(\s*\[((=\~)|(!\~)|(==)|(!=)|(=\^)|(!\^)|(=\$)|(!\$)|(=\?)|(!\?))\s+"(.*)"\s*\])?(\s+nodeps)?(\s+nounique)?\s*))$/i;
 var md5 = require('MD5');
 var jsParser = require("uglify-js");
 var cssParser = require('uglifycss');
@@ -94,7 +94,7 @@ pos=text.indexOf('<!--',oldpos);
 if (pos<0) break;
 
 var pos1=searchStartTagBlock(text,pos+4);
-if (pos1>0) {
+if (pos1>0) { 
 var pos2=text.indexOf('\n',pos1);
 if (pos2==-1) throw new Error('Expect a newline after a bind block at position '+pos);
 var buf=text.substring(pos1,pos2);
@@ -102,7 +102,7 @@ var match=BLOCK.exec(buf);
 if (match==null) throw new Error('Wrong block syntax ('+buf+') at position '+pos);
 pos1=text.indexOf('-->',pos2);
 if (pos1==-1) throw new Error('Expect the end block at position '+pos);
-var buffer;
+var buffer; 
 if (!options.development) buffer=callback(match[1],match[2],match[3],match[5],text.substring(pos2,pos1),pos2);
 else buffer=callback(match[1],'linked','separated',undefined,text.substring(pos2,pos1),pos2);
 
@@ -232,8 +232,8 @@ function inject(replacetype,aggrtype,buffer,repl,bf,ismini,filetype,commands,col
 				 }
 			    } else   if (replacetype==='inline') {
 					  var tmp;
-				      if (ismini) tmp=options.minifyHandlers[filetype](m,minified!='minified');
-			    else tmp+=getContent(m);	
+				      if (ismini && aggrtype!=='aggregated') tmp=options.minifyHandlers[filetype](buffer,minified!='minified');
+			          else tmp=getContent(m);	
 			         if (aggrtype==='aggregated') buffer+=tmp;
 			         else buffer+=getSourceReplacement(repl,tmp);
 			    }
@@ -286,6 +286,7 @@ function parseText(filepath,replacements,commands){
 			var filter=match[17];
 			var op=match[6];
 			var nodependencies=match[18]!=null;
+			var norepeat=match[19]!=null;
 			grunt.log.write('\t\t-Injecting dependency \''+depname+"'"+((op==null)?':':(' filtered by '+op+' \''+filter+"':")));
 			if (dep==undefined) {
 				if (adeps.get(depname)==undefined){
@@ -324,7 +325,7 @@ function parseText(filepath,replacements,commands){
 			   var m=mains[j];  
 			   if (gdeps[filetype][name].indexOf(m)>=0) continue;
 			   resourcesInjected+=1;
-			   gdeps[filetype][name].push(m);
+			   if (!norepeat) gdeps[filetype][name].push(m);
 			   if (!found) {
 			   found=true;
 			   grunt.log.writeln();
@@ -343,7 +344,7 @@ function parseText(filepath,replacements,commands){
 			  for(i=0;i<mains.length;i++){
 			  var m=mains[i]; 
 			  if (gdeps[filetype][depname].indexOf(m)>=0) continue;
-			  gdeps[filetype][depname].push(m);
+			  if (!norepeat) gdeps[filetype][depname].push(m);
 			  resourcesInjected+=1;
 			  if (!found) {
 			   found=true;
@@ -365,7 +366,10 @@ function parseText(filepath,replacements,commands){
 		 buffer=getLinkReplacement(repl,collapsedname,ismini,filetype);
 		
 		 index++;
-        } else if (replacetype==='inline') {
+        } else if (replacetype==='inline') { 
+			 
+		 if (ismini) buffer=options.minifyHandlers[filetype](buffer,minified!='minified');
+		
 		 buffer=getSourceReplacement(repl,buffer);
 		}
 	    }
@@ -410,15 +414,28 @@ function save(s,t){
 	
 }
 
-function minifyJS(f,mangled){
-var orig_code=stripComments(getContent(f),mangled);
-return jsParser.minify(orig_code,{fromString: true,mangle:mangled}).code;
+function minifyJS(f,mangled,ast){
+var code=stripComments(f,mangled); 
+var toplevel = jsParser.parse(code, { toplevel: ast  }); 
+toplevel.figure_out_scope();
+var compressor = jsParser.Compressor({unused:false,dead_code:false,warnings:false});
+var compressed_ast = toplevel.transform(compressor);
+if (mangled) {
+var options={except:['$','require','exports','Spinner']};
+compressed_ast.figure_out_scope();
+compressed_ast.compute_char_frequency(options);
+compressed_ast.mangle_names(options);
+}
+code=compressed_ast.print_to_string();
+
+
+return code;
 }
 
-function minifyCSS(f,mangled){
-return stripComments(cssParser.processFiles(
-    [ f],
-    { maxLineLen: 500, expandVars: true,uglyComments:mangled }),mangled);
+function minifyCSS(f,mangled,ast){
+	var orig_code=stripComments(f,mangled); 
+return cssParser.processString(orig_code,
+    { maxLineLen: 500, expandVars: true,uglyComments:mangled });
 }
 
 function stripComments(src,b) {
