@@ -46,7 +46,7 @@ separated : it handles each dependency separately.
 In the following lines of this block you must insert all the top dependencies (one for every line) with this syntax:
 ```code
 
-<package_name><search> <nodeps>
+<package_name><search> <nodeps> <nounique>
 ```
 where search is optional and has this syntax :
 ```code
@@ -64,9 +64,13 @@ where op comparator is :
 	!$ : not ends with
 	=? : contains 
 	!? : not contains
+	=~ : match the filter
+	!~ : not match the filter
 
 ```
-where nodeps is optional and force to not inject the dependencies.
+where 
+- nodeps is optional and force to not inject the dependencies 
+- nounique is optional and permits to repeat the same package in the template.
 
 The optional parameters search and nodeps might be used just if necessary , for example where a external bower  package contains different versions in the same package  or optional dependencies. 
 
