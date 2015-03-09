@@ -421,7 +421,7 @@ toplevel.figure_out_scope();
 var compressor = jsParser.Compressor({unused:false,dead_code:false,warnings:false});
 var compressed_ast = toplevel.transform(compressor);
 if (mangled) {
-var options={except:['$','require','exports','Spinner']};
+var options={except:['$','require','exports']};
 compressed_ast.figure_out_scope();
 compressed_ast.compute_char_frequency(options);
 compressed_ast.mangle_names(options);
@@ -493,6 +493,17 @@ function removeExtension(f){
 return f.substring(0,f.lastIndexOf('.'));
 }
 
+function compareUpdateTime(f1,f2){
+try {
+var m1=$.fs.statSync(f1);
+var m2=$.fs.statSync(f2);
+return m1.mtime>m2.mtime;
+}catch(e){
+	
+	return true;
+}
+}
+
 function processFiles(files,commands){
 // Iterate over all src-dest file pairs.
 
@@ -523,9 +534,9 @@ var dest=filemap.dest;
 
 // Print a success message.
 grunt.log.writeln('* Processing ' + filepath+":");
-var content=parseText(filepath,replacements,commands);
+var content=compareUpdateTime(filepath,dest)?parseText(filepath,replacements,commands):null;
 
-if (save(dest, content)) 
+if (content!=null && save(dest, content)) 
 grunt.log.writeln("\t -Saving to "+dest);
 else grunt.log.writeln('\t -Saving is skipped:file '+dest+' is unchanged');
 

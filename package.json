@@ -1,6 +1,6 @@
 {
 "name": "grunt-resourcesbinder",
-"version": "1.0.12",
+"version": "1.0.13",
 "description": "Embed Bower dependencies to your source code.",
 "repository": "publicocean0/grunt-resourcesbinder",
 "author": {
