@@ -9,7 +9,8 @@ var jsParser = require("uglify-js");
 var cssParser = require('uglifycss');
 grunt.registerMultiTask('resourcesbinder', 'embedding files', function() {
 // Merge task-specific and/or target-specific options with these defaults.
-
+var currentDir=process.cwd()+'/';
+var cwd = options.cwd ? $.path.resolve(options.cwd)+'/' : currentDir;
 var options =extend({
 separator: grunt.util.linefeed,
 development: false, 
@@ -33,6 +34,16 @@ for(var key in options.localDependencies){
 var l=options.localDependencies;
 if (l.main==undefined) throw new Error('main entry is not defined in local item '+k);
 if (!((l.main instanceof String )|(l.main instanceof Array ))) throw new Error('main entry contains a wrong data type in local item '+k);
+if (l.main instanceof String) l.main=[l.main];
+l.main= $._.unique(filePaths.reduce(function (acc, filePath) {
+acc = acc.concat(
+$.glob.sync(filePath, { cwd: cwd, root: '/' })
+.map(function (path) {
+return $.path.join(cwd, path);
+})
+);
+return acc;
+}, []));
 if (l.dependencies==undefined) l.dependencies={};
 if (l.dependencies instanceof Array ) throw new Error('dependencies entry contains a wrong data type in local item '+k);
 for(var key1 in l.dependencies){
@@ -41,6 +52,7 @@ if (d == undefined) throw new Error('dependency entry is undefined in local item
 if (!(d instanceof String) ) throw new Error('dependency entry contains a wrong data type in local item '+k+'.'+key1);
 }
 }
+console.log(JSON.stringify(options.localDependencies));
 var $ = {
 bowerConfig: require('bower-config'),
  _: require('lodash'),
@@ -49,8 +61,7 @@ path: require('path')
 };
 var helpers = require('./lib/helpers');
 var config = module.exports.config = helpers.createStore();
-var currentDir=process.cwd()+'/';
-var cwd = options.cwd ? $.path.resolve(options.cwd)+'/' : currentDir;
+
 
 config.set
 ('bower.json', options.bowerJson || JSON.parse($.fs.readFileSync($.path.join(cwd, './bower.json'))))
