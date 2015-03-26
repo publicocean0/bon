@@ -142,7 +142,7 @@ name: '',
 dependencies: {}
 };
 	
-	
+if (dep.name=='')	dep.name=component;
 var componentConfigFile = findComponentConfigFile(config, component);
 if (!componentConfigFile) {
 var error = new Error(component + ' is not installed. Try running `bower install` or remove the component from your bower.json file.');
@@ -168,14 +168,12 @@ dep.name = componentConfigFile.name;
 var depIsExcluded = $._.find(config.get('exclude'), function (pattern) {
 return $.path.join(config.get('bower-directory'), component).match(pattern);
 });
-if (dep.main.length === 0 && !depIsExcluded) {
-// can't find the main file. this config file is useless!
-throw new Error("Can't find the main file for '"+dep.name+"'");
-}
+
 if (componentConfigFile.dependencies) {
 dep.dependencies = componentConfigFile.dependencies;
 $._.each(componentConfigFile.dependencies, gatherInfo(config));
 }
+var cwd = $.path.join(config.get('bower-directory'), component);
 var packageHandler=config.get('package-handler'); 
 if (packageHandler!=undefined) {
 	var mains=[];
@@ -184,7 +182,7 @@ if (packageHandler!=undefined) {
 
 	if (mains.length>0){
 	  
-	  var cwd = $.path.join(config.get('bower-directory'), component);
+	 
 	  mains=$._.unique(mains.reduce(function (acc, filePath) {
 		acc = acc.concat(
 		$.glob.sync(filePath, { cwd: cwd, root: '/' })
@@ -203,6 +201,21 @@ if (packageHandler!=undefined) {
 	   keys.forEach(function(k){dep.dependencies[k]=deps[k];});
 	}
 	
+}
+if (dep.main.length === 0 && !depIsExcluded) {
+
+var f=$.path.join(cwd, dep.name);
+
+$.fs.lstat(f, function(err, stats) {
+    if (!err && stats.isDirectory()) {
+       dep.main.push(f);
+       dep.type = $._.chain(dep.main).map($.path.extname).unique().value();
+       console.log('Auto adding file '+f+' to main, because main is empty');
+    } else // can't find the main file. this config file is useless!
+throw new Error("Can't find the main file for '"+dep.name+"'");
+});
+
+
 }
 config.get('global-dependencies').set(component, dep);
 };
@@ -253,12 +266,11 @@ function prioritizeDependencies(config, fileType) {
 var deps=config.get('global-dependencies');
 
 
-
-var dependencies = $._.toArray(deps.get()).
+var dependencies = $._.toArray(deps.get())/*.
 filter(function (dependency) {
 return $._.contains(dependency.type, fileType);
 });
-
+*/
 var tdep={};
 
 
