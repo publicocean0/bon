@@ -55,7 +55,7 @@ for(var n = 0; n < 102; n++) {
 }
 console.log(bs.length());
 var a=new TypedNumber(200,'uint64');
-var b=[new Date(),{},null,{a:3,b:"ciao ",c:true,d:a}];
+var b=[new Date(),{},null,{a:3,b:"ciao ",c:true,d:a,e:bs}];
 console.log(JSON.stringify(b));
 var r=BOP.serialize(b,false,true);
 console.log(r);
