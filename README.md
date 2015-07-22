@@ -47,6 +47,13 @@ unserialize (binary ,with_checksum) /* to use in unstripped mode. */
 Example :  
 
 <pre>
+var bs = new BitSet();
+
+for(var n = 0; n < 102; n++) {
+  if (n%2) continue;
+  bs.set(n);
+}
+console.log(bs.length());
 var a=new TypedNumber(200,'uint64');
 var b=[new Date(),{},null,{a:3,b:"ciao ",c:true,d:a}];
 console.log(JSON.stringify(b));
