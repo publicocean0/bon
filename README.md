@@ -45,7 +45,7 @@ unserialize (binary ,with_checksum) /* to use in unstripped mode. */
 
 Example :  
 
-
+<pre>
 var a=new TypedNumber(200,'uint64');
 var b=[new Date(),{},null,{a:3,b:"ciao ",c:true,d:a}];
 console.log(JSON.stringify(b));
@@ -53,5 +53,5 @@ var r=BOP.serialize(b,false,true);
 console.log(r);
 var t=BOP.deserialize(r,true);
 console.log(JSON.stringify(t));
-
+</pre>
 
