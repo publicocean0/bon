@@ -1,7 +1,5 @@
 # BOP (Binary Object Protocol)
 
-This is a javascript library for serializing objects in BOP protocol.
-
 BOP is a binary protocol for a fast conversion of object, defined in every programmaing languages.
 There are 20 different of data type already defined, but you can extend the protocol with other custom serialization. 
 The main data types are:
@@ -30,6 +28,30 @@ The main data types are:
  
 The numbers are serialized in big endian order. 
 
+Javascript library 
 
+This is a javascript library for serializing objects in BOP protocol.
+javascript don't know natively integer with 8,16,32,64 bits. The just number known in this language is Number that is a 64-bit floating point. 
+This library permits to handle all the data types known  in other languages ( for example C , java , C# ....). 
+In addition it permits to serialize also a set of bits , dates, regular expressions, binary blobs. 
+You can serialize objects in stripped version or unstripped version.
+The first one permits to save data types in the stream , so the unserializer can rebuild the object correctly without write additional code. In this the serialization and the unserialization are completely transparent. 
+In the stripped mode, the serialization dont save data types of the object (in nested way). This permits to save space or permits to pass fastly data structure statically defined. 
+You can also to imagine to use in a part stripped mode and in a part unstripped mode.  
+Methods:
+serialize (object , stripped, with_checksum)
+unserialize (binary ,with_checksum) /* to use in unstripped mode. */
+
+
+Example :  
+
+
+var a=new TypedNumber(200,'uint64');
+var b=[new Date(),{},null,{a:3,b:"ciao ",c:true,d:a}];
+console.log(JSON.stringify(b));
+var r=BOP.serialize(b,false,true);
+console.log(r);
+var t=BOP.deserialize(r,true);
+console.log(JSON.stringify(t));
 
 
