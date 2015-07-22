@@ -39,9 +39,10 @@ The first one permits to save data types in the stream , so the unserializer can
 In the stripped mode, the serialization dont save data types of the object (in nested way). This permits to save space or permits to pass fastly data structure statically defined. 
 You can also to imagine to use in a part stripped mode and in a part unstripped mode.  
 Methods:
+<pre>
 serialize (object , stripped, with_checksum)
 unserialize (binary ,with_checksum) /* to use in unstripped mode. */
-
+</pre>
 
 Example :  
 
