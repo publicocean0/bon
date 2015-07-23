@@ -35,7 +35,7 @@ javascript don't know natively integer with 8,16,32,64 bits. The just number kno
 This library permits to handle all the data types known  in other languages ( for example C , java , C# ....). 
 In addition it permits to serialize also a set of bits , dates, regular expressions, binary blobs. 
 You can serialize objects in stripped version or unstripped version.
-The first one permits to save data types in the stream , so the unserializer can rebuild the object correctly without write additional code. In this the serialization and the unserialization are completely transparent. 
+The first one permits to save data types in the stream , so the unserializer can rebuild the object correctly without write additional code. In this case the serialization and the unserialization are completely transparent. 
 In the stripped mode, the serialization dont save data types of the object (in nested way). This permits to save space or permits to pass fastly data structure statically defined. 
 You can also to imagine to use in a part stripped mode and in a part unstripped mode.  
 Methods:
