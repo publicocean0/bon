@@ -115,6 +115,12 @@ function Binary (buffer) { // default big endian(network standard)
 
 };
 
+Binary.binaryString =function(nMask) {
+  // nMask must be between -2147483648 and 2147483647
+  for (var nFlag = 0, nShifted = nMask, sMask = ""; nFlag < 32;
+       nFlag++, sMask += String(nShifted >>> 31), nShifted <<= 1);
+  return sMask;
+};
 Binary.utf16to8 =function utf16to8(str) {
     var out, i, len, c;
 
@@ -259,9 +265,10 @@ var bytes=Math.ceil(l/8);
 var part=l%8;
 this.dataview.setUint32(this.offset,l);
 this.offset+=4;
-var cell=0,k;
+var cell,k;
 for(var j=0;j<bytes;j++){
 if (j==bytes-1) k=part; else k=8;
+cell=0;
 for(var i=0;i<k;i++) {
 	 cell=(b.get(j*8+i)<<(7-i)) | cell;
  }
@@ -354,7 +361,7 @@ ci++;
 index--;
 } else {
 a=this.dataview.getUint8(ci);
-c=(a&& 0xff>>(8-bi))<<(-tmp);
+c=(a& 0xff>>(8-bi))<<(-tmp);
 ci++;bi=8-tmp;
 a=this.dataview.getUint8(ci);
 c=c|(a>>8+tmp);	
@@ -374,8 +381,8 @@ return s;
 };
 
 Binary.prototype.toUTF8= function toUTF8(){
- var count=this.dataview.getUint32(this.offset,false);
- var i= 4+this.offset;
+ var count=this.dataview.getUint16(this.offset,false);
+ var i= 2+this.offset;
  var end=count+i;
  var result= "";
                   
@@ -405,7 +412,7 @@ Binary.prototype.toUTF8= function toUTF8(){
                           i+=3;
                       }          
                   }  
-                  this.offset+=4+count;              
+                  this.offset+=2+count;              
                   return result;		
 };
 
@@ -432,8 +439,8 @@ Binary.prototype.fromUTF8= function fromUTF8(stringToEncode){
 
               }
 
-this.dataview.setUint32(this.offset,utftext.length,false);
-this.offset+=4;
+this.dataview.setUint16(this.offset,utftext.length,false);
+this.offset+=2;
 for(var i=0;i<utftext.length;i++) this.dataview.setUint8(this.offset++,utftext[i]);
 
 return r;  
@@ -442,30 +449,27 @@ return r;
 
 Binary.UTF8Length= function fromUTF8(stringToEncode){
  stringToEncode = stringToEncode.replace(/\r\n/g,"\n");
-              var utftext = [];
+              var i=0
               
               for (var n = 0; n < stringToEncode.length; n++) {
 
                   var c = stringToEncode.charCodeAt(n);
 
                   if (c < 128) {
-                      utftext[utftext.length]= c;
+                      i++;
                   }
                   else if((c > 127) && (c < 2048)) {
-                      utftext[utftext.length]= (c >> 6) | 192;
-                      utftext[utftext.length]= (c & 63) | 128;
+                       i+=2;
                   }
                   else {
-                      utftext[utftext.length]= (c >> 12) | 224;
-                      utftext[utftext.length]= ((c >> 6) & 63) | 128;
-                      utftext[utftext.length]= (c & 63) | 128;
+                      i+=3;
                   }
 
               }
 
 
 
-return utftext.length+4;  
+return i+2;  
 	
 };
 
@@ -519,30 +523,25 @@ lo = hi % 0x100000000;
 hi = hi / 0x100000000;
 if (hi > 0x100000000) throw new RangeError(hi + ' is outside Int64 range');
 hi = hi | 0;
-if (!ENDIANESS) {
-	var l=((lo >> 24) & 0x000000FF) | ((lo >> 8) & 0x0000FF00) | ((lo<< 8) & 0x00FF0000) | ((lo<< 24) & 0xFF000000);
-	var h=((hi >> 24) & 0x000000FF) | ((hi >> 8) & 0x0000FF00) | ((hi<< 8) & 0x00FF0000) | ((hi<< 24) & 0xFF000000);
-   	hi=h;
-   	lo=l;
-}
 } else if (typeof(hi) == 'string') {
 hi = (hi + '').replace(/^0x/, '');
 lo = hi.substr(-8);
 hi = hi.length > 8 ? hi.substr(0, hi.length - 8) : '';
 hi = parseInt(hi, 16);
 lo = parseInt(lo, 16);
-if (!ENDIANESS) {
-	var l=((lo >> 24) & 0x000000FF) | ((lo >> 8) & 0x0000FF00) | ((lo<< 8) & 0x00FF0000) | ((lo<< 24) & 0xFF000000);
-	var h=((hi >> 24) & 0x000000FF) | ((hi >> 8) & 0x0000FF00) | ((hi<< 8) & 0x00FF0000) | ((hi<< 24) & 0xFF000000);
-   	hi=h;
-   	lo=l;
-}
+
 } else {
 throw new Error(hi + ' must be a Number or String');
 }
 }
 if (this.buffer==undefined) this.buffer=new Uint8Array(8);
 var b=new Uint32Array(this.buffer.buffer);
+if (!ENDIANESS) {
+	var l=((lo >> 24) & 0x000000FF) | ((lo >> 8) & 0x0000FF00) | ((lo<< 8) & 0x00FF0000) | ((lo<< 24) & 0xFF000000);
+	var h=((hi >> 24) & 0x000000FF) | ((hi >> 8) & 0x0000FF00) | ((hi<< 8) & 0x00FF0000) | ((hi<< 24) & 0xFF000000);
+   	hi=h;
+   	lo=l;
+}
 b[0]=hi;
 b[1]=lo;
 
@@ -595,13 +594,13 @@ this.toNumberFormat=function(){
 };
 
 this.lowerInt =function(){
-var f=new Uint32Array(this.buffer.buffer);
-return f[1];
+var o=new Uint32Array(this.buffer.buffer);
+	return (!ENDIANESS)?((o[1] >> 24) & 0x000000FF) | ((o[1] >> 8) & 0x0000FF00) | ((o[1]<< 8) & 0x00FF0000) | ((o[1]<< 24) & 0xFF000000):o[1];
 
 };
 this.upperInt =function(){
-var f=new Uint32Array(this.buffer.buffer);
-return f[0];
+var o=new Uint32Array(this.buffer.buffer);
+return (!ENDIANESS)?((o[0] >> 24) & 0x000000FF) | ((o[0] >> 8) & 0x0000FF00) | ((o[0]<< 8) & 0x00FF0000) | ((o[0]<< 24) & 0xFF000000):o[0];
 
 };
 
@@ -647,13 +646,13 @@ this.toNumberFormat=function(){
 	return f[0];	
 };
 this.lowerInt =function(){
-var f=new Uint32Array(this.buffer.buffer);
-return f[1];
+var o=new Uint32Array(this.buffer.buffer);
+	return (!ENDIANESS)?((o[1] >> 24) & 0x000000FF) | ((o[1] >> 8) & 0x0000FF00) | ((o[1]<< 8) & 0x00FF0000) | ((o[1]<< 24) & 0xFF000000):o[1];
 
 };
 this.upperInt =function(){
-var f=new Uint32Array(this.buffer.buffer);
-return f[0];
+var o=new Uint32Array(this.buffer.buffer);
+return (!ENDIANESS)?((o[0] >> 24) & 0x000000FF) | ((o[0] >> 8) & 0x0000FF00) | ((o[0]<< 8) & 0x00FF0000) | ((o[0]<< 24) & 0xFF000000):o[0];
 
 };
 
@@ -781,8 +780,8 @@ Binary.crc32=function crc32 (buffer,len ) {
         fnv = 0;
 
         for(var i = 0; i < len; i++) {
-            fnv = (fnv + (((fnv << 1) + (fnv << 4) + (fnv << 7) + (fnv << 8) + (fnv << 24)) >>> 0)) ^ (buffer[i] & 0xff);
-        }
+            fnv = ((fnv + (((fnv << 1) + (fnv << 4) + (fnv << 7) + (fnv << 8) + (fnv << 24)) >>> 0)) ^ (buffer[i] & 0xff)) ;
+         }
 
         return fnv >>> 0;
 
@@ -794,7 +793,7 @@ Binary.crc32=function crc32 (buffer,len ) {
  * 3 typedarray
  * 4 untypedarray
  * 5 bool
- * 6 utf
+ * 6 utf8
  * 7 uint8 
  * 8 int8
  * 9 uint16
@@ -1054,7 +1053,7 @@ case 16:return (!typed)?8:9;
 case 17:return  ((!typed)?4:5)+obj.length;
 case 18:return (!typed)?8:9;
 case 19:return  ((!typed)?4:5)+obj.source.length;
-case 20: return  ((!type)?4:5)+Math.ceil(obj.length()/8);
+case 20: return  ((!typed)?4:5)+Math.ceil(obj.length()/8);
 }	
 };
 
@@ -1116,11 +1115,11 @@ case 10: data.fromInt16(obj);break;
 case 11: data.fromUint32(obj);break;
 case 12: data.fromInt32(obj);break;
 case 13: data.fromUint64(obj.value);break;
-case 14: data.fromUint64(obj.value);break;
+case 14: data.fromInt64(obj.value);break;
 case 15: data.fromFloat32(obj);break;
 case 16: data.fromFloat64(obj);break;
 case 17: data.fromBinary(obj);break;
-case 18: data.fromUint64(new UInt64(obj.getTime()));break;
+case 18: data.fromUint64(new UInt64(obj.getTime() + obj.getTimezoneOffset() * 60000));break;
 case 19: data.fromUTF8(obj.source);break;
 case 20: data.fromBitSet(obj);break;
 }
@@ -1141,7 +1140,7 @@ if (checksum)	{
 	var crc=Binary.crc32(buffer,buffer.length-4);
 	data.setOffset(buffer.length-4);
 	var oc=data.decodeInt(32, false  );
-	data.setOffset(0);
+	data.setOffset(0); 
 	if (crc!=oc) throw 'invalid checksum';
 	
 }
@@ -1200,7 +1199,7 @@ case 14: return data.toUint64();
 case 15: return data.toFloat32();
 case 16: return data.toFloat64();
 case 17: return data.toBinary();
-case 18: return new Date(data.toUint64().value.toNumber(true));
+case 18: return new Date(data.toUint64().value.toNumber(true)-(new Date().getTimezoneOffset())*60000);
 case 19: return new RegExp(data.toUTF8());	
 case 20: return data.toBitSet();
 }	
@@ -1213,10 +1212,22 @@ return r;
 
 
 
+/*
+var bs = new BitSet();
 
+for(var n = 0; n < 102; n++) {
+  if (n%2) continue;
+  bs.set(n);
+}
 
+var a=new TypedNumber(200,'uint64');
+var b=[new Date(Date.parse("2015-07-08T00:00:00")),{},null,{a:3,b:"ciao ",c:true,d:a,e:bs}];
+console.log(JSON.stringify(b));
+var r=BOP.serialize(b,false,true);
+console.log(r);
+var t=BOP.deserialize(r,true);
+console.log(JSON.stringify(t));
 
-
-
+*/
 
 
