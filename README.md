@@ -28,7 +28,7 @@ The main data types are:
  
 The numbers are serialized in big endian order. The properties names are encoded in a 6bit binary(accepted characters are [ a-z, A-Z,0-9, _ ,$] , maximum length is 255 ).
 
-Javascript library 
+<b>Javascript library</b> 
 
 This is a javascript library for serializing objects in BOP protocol.
 javascript don't know natively integer with 8,16,32,64 bits. The just number known in this language is Number that is a 64-bit floating point. 
