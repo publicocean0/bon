@@ -1,6 +1,6 @@
 # BOP (Binary Object Protocol)
 
-BOP is a binary protocol for a fast conversion of object, defined in every programmaing languages.
+BOP is a binary protocol for a fast conversion of object, defined for working in every programmaing languages.
 There are 20 different of data type already defined, but you can extend the protocol with other custom serialization. 
 The main data types are:
 
