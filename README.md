@@ -26,7 +26,7 @@ The main data types are:
  * 19 regexp
  * 20 bitset
  
-The numbers are serialized in big endian order. The properties names are encoded in a 6bit binary(accepted characters are a-z, A-Z,0-9, _ ,$).
+The numbers are serialized in big endian order. The properties names are encoded in a 6bit binary(accepted characters are [ a-z, A-Z,0-9, _ ,$] , maximum length is 255 ).
 
 Javascript library 
 
