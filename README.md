@@ -1,6 +1,6 @@
 # BOP (Binary Object Protocol)
 
-BOP is a binary protocol for a fast conversion of object, defined in every programmaing languages.
+BOP is a binary protocol for a fast conversion of object, defined for working in every programmaing languages.
 There are 20 different of data type already defined, but you can extend the protocol with other custom serialization. 
 The main data types are:
 
@@ -26,9 +26,9 @@ The main data types are:
  * 19 regexp
  * 20 bitset
  
-The numbers are serialized in big endian order. 
+The numbers are serialized in big endian order. The properties names are encoded in a 6bit binary(accepted characters are [ a-z, A-Z,0-9, _ ,$] , maximum length is 255 ).
 
-Javascript library 
+<b>Javascript library</b> 
 
 This is a javascript library for serializing objects in BOP protocol.
 javascript don't know natively integer with 8,16,32,64 bits. The just number known in this language is Number that is a 64-bit floating point. 
