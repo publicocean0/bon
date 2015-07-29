@@ -107,7 +107,7 @@ function swapBytes(buf, size){
 }
 
 var  ENDIANESS=checkEndianess();
-
+var  TIMEZONEOFFSET=new Date().getTimezoneOffset();
  
 function Binary (buffer) { // default big endian(network standard)
     this.dataview=new DataView(buffer,0);
@@ -443,7 +443,7 @@ this.dataview.setUint16(this.offset,utftext.length,false);
 this.offset+=2;
 for(var i=0;i<utftext.length;i++) this.dataview.setUint8(this.offset++,utftext[i]);
 
-return r;  
+
 	
 };
 
@@ -489,7 +489,7 @@ this.dataview.setUint32(this.offset,data.length,false);
 var j=this.offset+4;
 for(var i=0;i<data.length;i++)	this.dataview.setUint8(j++,data[i]);	
 this.offset+=4+data.length;
-return r;
+
 	
 };
 
@@ -1012,34 +1012,38 @@ case "number":return 16;
 
  
 
-BOP.calculateSize=function(typed,stripped,obj){
+BOP.calculateSize=function(enumerable,typed,stripped,obj){
 var type=this.getType(obj);
 switch(type){
 case 0:return (!typed)?0:1;// null is skipped
 case 1:{
 	var keys=Object.keys(obj);
-	var size=(!typed)?4:5;
+	var size=(enumerable)?4:0;
+	size+=(!typed)?0:1;
 	if (!stripped) size++;
 	for(var i=0;i<keys.length;i++) size+=Binary.getPropertySize(keys[i]);// fieldname props
-	if (keys.length>0) size+=keys.length*BOP.calculateSize(false,stripped,obj[keys[0]]);
+	if (keys.length>0) size+=keys.length*BOP.calculateSize(enumerable,false,stripped,obj[keys[0]]);
 	return size;
 	}
 case 2:{
 	var keys=Object.keys(obj);
-	var size=(!typed)?4:5;
+	var size=(enumerable)?4:0;
+	size+=(!typed)?0:1;
 	for(var i=0;i<keys.length;i++) size+=Binary.getPropertySize(keys[i]);
-	for(var i=0;i<keys.length;i++) size+=BOP.calculateSize(!stripped,stripped,obj[keys[i]]);
+	for(var i=0;i<keys.length;i++) size+=BOP.calculateSize(enumerable,!stripped,stripped,obj[keys[i]]);
 	return size;
 	}
 case 3:	{
-	var size=(!typed)?4:5;
+	var size=(enumerable)?4:0;
+	size+=(!typed)?0:1;
 	if (!stripped) size++;
-	if (obj.length>0) size+=obj.length*BOP.calculateSize(false,stripped,obj[0]);
+	if (obj.length>0) size+=obj.length*BOP.calculateSize(enumerable,false,stripped,obj[0]);
 	return size;
 }
 case 4:{
-	var size=(!typed)?4:5;
-	for(var i=0;i<obj.length;i++) size+=BOP.calculateSize(!stripped,stripped,obj[i]);
+	var size=(enumerable)?4:0;
+	size+=(!typed)?0:1;
+	for(var i=0;i<obj.length;i++) size+=BOP.calculateSize(enumerable,!stripped,stripped,obj[i]);
 	return size;
 }
 case 5:return (!typed)?1:2;	
@@ -1058,7 +1062,7 @@ case 20: return  ((!typed)?4:5)+Math.ceil(obj.length()/8);
 };
 
 BOP.serialize=function(obj,stripped,checksum){
-var size=this.calculateSize(!stripped,stripped,obj);	
+var size=this.calculateSize(true,!stripped,stripped,obj);	
 if (checksum) size+=4;
 var buffer=(new Uint8Array(size));
 data=new Binary(buffer.buffer);
@@ -1125,6 +1129,56 @@ case 20: data.fromBitSet(obj);break;
 }
 };
 _serialize(!stripped,stripped,data,obj);
+if (checksum)	data.fromUint32(Binary.crc32(buffer,buffer.length-4));
+return buffer;
+};
+
+
+BOP.encode=function(obj,checksum){
+var size=this.calculateSize(false,false,true,obj);	
+if (checksum) size+=4;
+var buffer=(new Uint8Array(size));
+data=new Binary(buffer.buffer);
+var _serialize=function(data,obj){
+var t=BOP.getType(obj);
+switch(t){
+case 0: break;
+case 1:case 2: {
+keys=Object.keys(obj);
+var k,o;	
+for(var i=0;i<keys.length;i++){
+k=keys[i];o=obj[k];
+data.encodeProperty(k);
+_serialize(data,o);
+}
+}break;
+case 3:case 4:{
+var o;	
+for(var i=0;i<obj.length;i++){
+o=obj[i];
+_serialize(data,o);
+}
+}break;
+
+case 5: data.fromBoolean(obj);break;
+case 6: data.fromUTF8(obj);break;
+case 7: data.fromUint8(obj);break;
+case 8: data.fromInt8(obj);break;
+case 9: data.fromUint16(obj);break;
+case 10: data.fromInt16(obj);break;
+case 11: data.fromUint32(obj);break;
+case 12: data.fromInt32(obj);break;
+case 13: data.fromUint64(obj.value);break;
+case 14: data.fromInt64(obj.value);break;
+case 15: data.fromFloat32(obj);break;
+case 16: data.fromFloat64(obj);break;
+case 17: data.fromBinary(obj);break;
+case 18: data.fromUint64(new UInt64(obj.getTime() + obj.getTimezoneOffset() * 60000));break;
+case 19: data.fromUTF8(obj.source);break;
+case 20: data.fromBitSet(obj);break;
+}
+};
+_serialize(data,obj);
 if (checksum)	data.fromUint32(Binary.crc32(buffer,buffer.length-4));
 return buffer;
 };
@@ -1199,7 +1253,7 @@ case 14: return data.toUint64();
 case 15: return data.toFloat32();
 case 16: return data.toFloat64();
 case 17: return data.toBinary();
-case 18: return new Date(data.toUint64().value.toNumber(true)-(new Date().getTimezoneOffset())*60000);
+case 18: return new Date(data.toUint64().value.toNumber(true)-TIMEZONEOFFSET*60000);
 case 19: return new RegExp(data.toUTF8());	
 case 20: return data.toBitSet();
 }	
