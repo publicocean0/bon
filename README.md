@@ -30,7 +30,7 @@ The numbers are serialized in big endian order. The properties names are encoded
 
 <b>Javascript library</b> 
 
-This is a javascript library for serializing objects in BOP protocol.
+This is a javascript library for serializing objects in BON notation.
 javascript don't know natively integer with 8,16,32,64 bits. The just number known in this language is Number that is a 64-bit floating point. 
 This library permits to handle all the data types known  in other languages ( for example C , java , C# ....). 
 In addition it permits to serialize also a set of bits , dates, regular expressions, binary blobs. 
