@@ -1,6 +1,7 @@
 {
 "name": "bop",
 "version": "0.2",
-"main":["bop.js"]
+"main":["bon.js"],
+"ignore": []
 }
 
