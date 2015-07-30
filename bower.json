@@ -1,6 +1,6 @@
 {
 "name": "bop",
-"version": "0.1",
+"version": "0.2",
 "main":["bop.js"]
 }
 
