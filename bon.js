@@ -980,9 +980,9 @@ this.value;
 
 
  
-function BOP(){};
+function BON(){};
 
-BOP.getType=function(obj){
+BON.getType=function(obj){
 if (obj==null||obj==undefined) return 0;
 else if (obj instanceof String) {
 return 6;
@@ -1029,7 +1029,7 @@ case "number":return 16;
 
  
 
-BOP.calculateSize=function(enumerable,typed,stripped,obj){
+BON.calculateSize=function(enumerable,typed,stripped,obj){
 var type=this.getType(obj);
 switch(type){
 case 0:return (!typed)?0:1;// null is skipped
@@ -1039,7 +1039,7 @@ case 1:{
 	size+=(!typed)?0:1;
 	if (!stripped) size++;
 	for(var i=0;i<keys.length;i++) size+=Binary.getPropertySize(keys[i]);// fieldname props
-	if (keys.length>0) size+=keys.length*BOP.calculateSize(enumerable,false,stripped,obj[keys[0]]);
+	if (keys.length>0) size+=keys.length*BON.calculateSize(enumerable,false,stripped,obj[keys[0]]);
 	return size;
 	}
 case 2:{
@@ -1047,20 +1047,20 @@ case 2:{
 	var size=(enumerable)?4:0;
 	size+=(!typed)?0:1;
 	for(var i=0;i<keys.length;i++) size+=Binary.getPropertySize(keys[i]);
-	for(var i=0;i<keys.length;i++) size+=BOP.calculateSize(enumerable,!stripped,stripped,obj[keys[i]]);
+	for(var i=0;i<keys.length;i++) size+=BON.calculateSize(enumerable,!stripped,stripped,obj[keys[i]]);
 	return size;
 	}
 case 3:	{
 	var size=(enumerable)?4:0;
 	size+=(!typed)?0:1;
 	if (!stripped) size++;
-	if (obj.length>0) size+=obj.length*BOP.calculateSize(enumerable,false,stripped,obj[0]);
+	if (obj.length>0) size+=obj.length*BON.calculateSize(enumerable,false,stripped,obj[0]);
 	return size;
 }
 case 4:{
 	var size=(enumerable)?4:0;
 	size+=(!typed)?0:1;
-	for(var i=0;i<obj.length;i++) size+=BOP.calculateSize(enumerable,!stripped,stripped,obj[i]);
+	for(var i=0;i<obj.length;i++) size+=BON.calculateSize(enumerable,!stripped,stripped,obj[i]);
 	return size;
 }
 case 5:return (!typed)?1:2;	
@@ -1078,21 +1078,21 @@ case 20: return  ((!typed)?4:5)+Math.ceil(obj.length()/8);
 }	
 };
 
-BOP.serialize=function(obj,stripped,checksum){
+BON.serialize=function(obj,stripped,checksum){
 var size=this.calculateSize(true,!stripped,stripped,obj);	
 if (checksum) size+=4;
 var buffer=(new Uint8Array(size));
 data=new Binary(buffer.buffer);
 var _serialize=function(typed,stripped,data,obj,t){
 if (t==undefined) {
-	t=BOP.getType(obj);
+	t=BON.getType(obj);
     if (typed) data.fromUint8(t);
 }	
 switch(t){
 case 0: break;
 case 1:{keys=Object.keys(obj);
 data.fromUint32(keys.length);
-var k=keys[0],o=obj[k],tt=BOP.getType(o);
+var k=keys[0],o=obj[k],tt=BON.getType(o);
 if (!stripped) data.fromUint8(tt);	
 for(var i=0;i<keys.length;i++){
 k=keys[i];
@@ -1111,7 +1111,7 @@ _serialize(!stripped,stripped,data,o);
 }break;
 case 3:{
 data.fromUint32(obj.length);
-var o=obj[0],tt=BOP.getType(o);	
+var o=obj[0],tt=BON.getType(o);	
 if (!stripped) data.fromUint8(tt);
 for(var i=0;i<obj.length;i++){
 o=obj[i];
@@ -1151,13 +1151,13 @@ return buffer;
 };
 
 
-BOP.encode=function(obj,checksum){
+BON.encode=function(obj,checksum){
 var size=this.calculateSize(false,false,true,obj);	
 if (checksum) size+=4;
 var buffer=(new Uint8Array(size));
 data=new Binary(buffer.buffer);
 var _serialize=function(data,obj){
-var t=BOP.getType(obj);
+var t=BON.getType(obj);
 switch(t){
 case 0: break;
 case 1:case 2: {
@@ -1200,7 +1200,7 @@ if (checksum)	data.fromUint32(Binary.crc32(buffer,buffer.length-4));
 return buffer;
 };
 
-BOP.deserialize=function(buffer,checksum,t){
+BON.deserialize=function(buffer,checksum,t){
 var ar;
 if ((buffer instanceof Int8Array)||(buffer instanceof Uint8Array)||( buffer instanceof Int16Array) ||( buffer instanceof Uint16Array)
 ||( buffer instanceof Int32Array)||( buffer instanceof Uint32Array)||( buffer instanceof Float32Array)||( buffer instanceof Float64Array)) ar=buffer.buffer;
@@ -1294,9 +1294,9 @@ for(var n = 0; n < 102; n++) {
 var a=new TypedNumber(200,'uint64');
 var b=[new Date(Date.parse("2015-07-08T00:00:00")),{},null,{a:3,b:"ciao ",c:true,d:a,e:bs}];
 console.log(JSON.stringify(b));
-var r=BOP.serialize(b,false,true);
+var r=BON.serialize(b,false,true);
 console.log(r);
-var t=BOP.deserialize(r,true);
+var t=BON.deserialize(r,true);
 console.log(JSON.stringify(t));
 */
 
