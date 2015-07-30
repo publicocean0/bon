@@ -1,6 +1,6 @@
-# BOP (Binary Object Protocol)
+# BON (Binary Object Notation)
 
-BOP is a binary protocol for a fast conversion of object, defined for working in every programmaing languages.
+BON is a binary notation for a fast conversion of object, defined for working in every programmaing languages.
 There are 20 different of data type already defined, but you can extend the protocol with other custom serialization. 
 The main data types are:
 
