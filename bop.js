@@ -299,11 +299,11 @@ return b;
 
 
 Binary.getPropertySize=function(s){
-	return Math.ceil(s.length/3)+1;
+	return Math.ceil(s.length/4*3)+1;
 };
 Binary.prototype.encodeProperty=function(s){
 if (s.length>255) throw new Exception('invalid property length');
-var count=Binary.getPropertySize(s);
+var count=Binary.getPropertySize(s)-1;
 
 this.dataview.setUint8(this.offset,s.length,false);
 var ci=this.offset;
@@ -311,9 +311,9 @@ for (var i=1;i<count;i++) this.dataview.setUint8(ci+i,0);
 ci++;
 var bi=8;
 var ch;
-var c,a;
+var c,a=0,l=s.length;
 var tmp;
-for(var i=0;i<s.length;i++){
+for(var i=0;i<l;i++){
 ch=s.charCodeAt(i);
 if (ch>=48 && ch<=57) c=ch-48;
 else if (ch>=65 &&ch<=90) c=ch-55;
@@ -323,22 +323,29 @@ else if (ch==36)  c=63;
 else  throw new Exception('invalid property character');	
 tmp=bi-6;
 if (tmp>=0){
-a=this.dataview.getUint8(ci);	
-a=a|(c<<tmp);
-bi=tmp;
-this.dataview.setUint8(ci,a);
+	a = a | (c << tmp);
+	bi = tmp;
+	this.dataview.setUint8(ci,a);
 } else {
-a=this.dataview.getUint8(ci);
-a=a|(c>>(6-bi));
-ci++;bi=8-tmp;
-a=this.dataview.getUint8(ci);
-a=a|(c<<2-tmp);	
-this.dataview.setUint8(ci,a);	
+	a = a | (c >> (6 - bi));
+	this.dataview.setUint8(ci,a);ci++;
+	bi = 8 + tmp;
+	a = (c << bi) & 0xff;
+	
 }
+	if (bi == 0 || (l - 1 == i)) {
+				this.dataview.setUint8(ci,a);ci++;	
+				a = 0;
+				bi = 8;
+			}
 
 }
-this.offset+=count;	
+this.offset+=count+1;	
 return a;
+};
+
+Binary.prototype.remainingBuffer=function(r){
+return this.dataview.buffer.slice(this.offset,r);		
 };
 
 Binary.prototype.decodeProperty=function(a){
@@ -348,26 +355,36 @@ var index=count;
 var ci=this.offset+1;
 var bi=8;
 var ch;
-var c;
+var c,a=0;
 var tmp;
 do{
 
 tmp=bi-6;
 if (tmp>=0){
-a=this.dataview.getUint8(ci);
-c=a>>tmp;
-bi=tmp;
-ci++;
-index--;
-} else {
-a=this.dataview.getUint8(ci);
-c=(a& 0xff>>(8-bi))<<(-tmp);
-ci++;bi=8-tmp;
-a=this.dataview.getUint8(ci);
-c=c|(a>>8+tmp);	
-index--;	
-}
 
+
+	c= (a & (0xff >> (8 - bi)))<<tmp;
+				if (tmp>0){
+				a= this.dataview.getUint8(ci);
+				c = (c << tmp) | (a >> tmp);
+				ci++;
+				}
+				bi = tmp;
+				index--;
+		
+} else {
+	c = (a & (0xff >> (8 - bi)));
+				bi = 8 + tmp;
+				c=c<< (-tmp);
+				
+				a=this.dataview.getUint8(ci);
+				c = c | (a >> bi);
+				index--;ci++;	
+}
+if (bi == 0) {
+				a = 0;
+				bi = 8;
+			}
 if (c<10) s+=String.fromCharCode(c+48);
 else if (c>=10 &&c<36) s+=String.fromCharCode(55+c);
 else if (c>=36 && c<62) s+=String.fromCharCode(c+61);
@@ -376,7 +393,7 @@ else if (c==63)  s+=String.fromCharCode(36);
 
 
 }while(index>0);
-this.offset+=1+count;	
+this.offset+=ci-this.offset;	
 return s;
 };
 
@@ -1183,7 +1200,7 @@ if (checksum)	data.fromUint32(Binary.crc32(buffer,buffer.length-4));
 return buffer;
 };
 
-BOP.deserialize=function(buffer,checksum){
+BOP.deserialize=function(buffer,checksum,t){
 var ar;
 if ((buffer instanceof Int8Array)||(buffer instanceof Uint8Array)||( buffer instanceof Int16Array) ||( buffer instanceof Uint16Array)
 ||( buffer instanceof Int32Array)||( buffer instanceof Uint32Array)||( buffer instanceof Float32Array)||( buffer instanceof Float64Array)) ar=buffer.buffer;
@@ -1259,8 +1276,8 @@ case 20: return data.toBitSet();
 }	
 	
 };
-var r= _deserialize(data);
-if (data.offset!=buffer.length-4) throw "data doesn't cover all the buffer";
+var r= _deserialize(data,t); 
+if (data.offset!=buffer.byteLength-(checksum?4:0)) throw "data doesn't cover all the buffer";
 return r;
 };
 
@@ -1281,7 +1298,7 @@ var r=BOP.serialize(b,false,true);
 console.log(r);
 var t=BOP.deserialize(r,true);
 console.log(JSON.stringify(t));
-
 */
+
 
 
