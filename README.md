@@ -64,3 +64,6 @@ console.log(JSON.stringify(t));
 </pre>
 
 
+License
+
+Copyright (c) 2015 Lorenzetto Cristian. Licensed under the MIT license.
