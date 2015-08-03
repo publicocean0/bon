@@ -209,6 +209,7 @@ default : throw new Exception("integer length not correct");
 	
 }; 
 Binary.prototype.eof =function(){return this.offset>=this.dataview.dataview.byteLength;}
+
 Binary.prototype.decodeInt   = function decodeInt(bit,signed){
  
 var a;
@@ -345,7 +346,7 @@ return a;
 };
 
 Binary.prototype.remainingBuffer=function(r){
-return this.dataview.buffer.slice(this.offset,r);		
+return (r==undefined)?this.dataview.buffer.slice(this.offset):this.dataview.buffer.slice(this.offset,r);		
 };
 
 Binary.prototype.decodeProperty=function(a){
@@ -494,18 +495,41 @@ Binary.prototype.setOffset= function(a){
 this.offset=a;
 };
 
-Binary.prototype.toBuffer    = function(){ 
-var size=this.dataview.getUint32(this.offset,!false);	
+Binary.prototype.toBinary    = function(){ 
+var size=this.dataview.getUint32(this.offset);	
 var r=this.dataview.buffer.slice(this.offset+4,this.offset+4+size);	
 this.offset+=4+size;
 return r;
 };
 
-Binary.prototype.fromBuffer    = function( data ){ 
-this.dataview.setUint32(this.offset,data.length,false);	
+Binary.prototype.fromBinary    = function( data ){ 
+if (data instanceof Blob) {
+var uint8ArrayNew  = null;
+var arrayBufferNew = null;
+var fileReader     = new FileReader();
+fileReader.onload  = function(progressEvent) {
+    arrayBufferNew = this.result;
+    uint8ArrayNew  = new Uint8Array(arrayBufferNew);
+
+    // warn if read values are not the same as the original values
+    // arrayEqual from: http://stackoverflow.com/questions/3115982/how-to-check-javascript-array-equals
+    function arrayEqual(a, b) { return !(a<b || b<a); };
+    if (arrayBufferNew.byteLength !== arrayBuffer.byteLength) // should be 3
+        console.warn("ArrayBuffer byteLength does not match");
+    if (arrayEqual(uint8ArrayNew, uint8Array) !== true) // should be [1,2,3]
+        console.warn("Uint8Array does not match");
+};
+fileReader.readAsArrayBuffer(blob);
+data=fileReader.result; // also accessible this way once the blob has been read	
+	
+} else {
+data =  new Uint8Array(data);	
+}
+
+this.dataview.setUint32(this.offset,data.byteLength,false);	
 var j=this.offset+4;
-for(var i=0;i<data.length;i++)	this.dataview.setUint8(j++,data[i]);	
-this.offset+=4+data.length;
+for(var i=0;i<data.byteLength;i++)	this.dataview.setUint8(j++,data[i]);	
+this.offset+=4+data.byteLength;
 
 	
 };
@@ -765,7 +789,43 @@ this.setValue(hi,lo);
 	
 	
 };
+function appendBuffer( buffer1, buffer2 ) {
+  var tmp = new Uint8Array( buffer1.byteLength + buffer2.byteLength );
+  tmp.set( new Uint8Array( buffer1 ), 0 );
+  tmp.set( new Uint8Array( buffer2 ), buffer1.byteLength );
+  return tmp.buffer;
+}
+Binary.prototype.appendBuffer=function(buffer){
+this.dataview=new DataView(appendBuffer(this.dataview.buffer,buffer));	
+};
+Binary.prototype.fromBuffer=function(buffer){
+	var data;
+	if (buffer instanceof Blob) {
+var uint8ArrayNew  = null;
+var arrayBufferNew = null;
+var fileReader     = new FileReader();
+fileReader.onload  = function(progressEvent) {
+    arrayBufferNew = this.result;
+    uint8ArrayNew  = new Uint8Array(arrayBufferNew);
 
+    // warn if read values are not the same as the original values
+    // arrayEqual from: http://stackoverflow.com/questions/3115982/how-to-check-javascript-array-equals
+    function arrayEqual(a, b) { return !(a<b || b<a); };
+    if (arrayBufferNew.byteLength !== arrayBuffer.byteLength) // should be 3
+        console.warn("ArrayBuffer byteLength does not match");
+    if (arrayEqual(uint8ArrayNew, uint8Array) !== true) // should be [1,2,3]
+        console.warn("Uint8Array does not match");
+};
+fileReader.readAsArrayBuffer(blob);
+data=fileReader.result; // also accessible this way once the blob has been read	
+	
+} else {
+data =  new Uint8Array(buffer);	
+}
+
+
+for(var i=0;i<data.byteLength;i++) this.dataview.setUint8(this.offset++,data[i]);	
+};
 Binary.prototype.toInt8    = function(){ return new TypedNumber(this.decodeInt( 8, true  ),'int8'); };
 Binary.prototype.fromInt8  = function( data ){ return this.encodeInt( data,  8, false  ); };
 Binary.prototype.toUint8     = function(){ return new TypedNumber(this.decodeInt(  8, false ),'uint8'); };
@@ -791,7 +851,7 @@ var s='';
 var b=this.dataview.buffer;
 for(var i=0;i<b.length;i++) s+=b[i].String(16);
 return s;
-
+ 
 };
 Binary.crc32=function crc32 (buffer,len ) {
         fnv = 0;
@@ -1009,6 +1069,9 @@ switch(obj.type){
 	case "float32":return 15;
 	case "float64":return 16;
 }
+} else if ((obj instanceof ArrayBuffer)||(obj instanceof Blob)||(obj instanceof Int8Array)
+||(obj instanceof Uint8Array)||(obj instanceof Int16Array)||(obj instanceof Uint16Array)||(obj instanceof Int32Array)||(obj instanceof Uint32Array)||(obj instanceof Float32Array)||(obj instanceof Float64Array))	{
+return 17;
 } else if (Array.isArray(obj))	{
 return (Array.isTyped(obj))?3:4;
 }
@@ -1029,8 +1092,8 @@ case "number":return 16;
 
  
 
-BON.calculateSize=function(enumerable,typed,stripped,obj){
-var type=this.getType(obj);
+BON.calculateSize=function(enumerable,typed,stripped,obj,type){
+if (type==undefined) type=this.getType(obj);
 switch(type){
 case 0:return (!typed)?0:1;// null is skipped
 case 1:{
@@ -1071,15 +1134,22 @@ case 11:case 12:return (!typed)?4:5;
 case 13:case 14:return (!typed)?8:9;
 case 15:return (!typed)?4:5;
 case 16:return (!typed)?8:9;
-case 17:return  ((!typed)?4:5)+obj.length;
+case 17: {
+	var c=(enumerable)?4:0;
+	c+=(!typed)?0:1;
+	if (obj instanceof Blob) c+=obj.size; 
+	else if ((obj instanceof ArrayBuffer)||(obj instanceof Int8Array)||(obj instanceof Uint8Array)||(obj instanceof Int16Array)||(obj instanceof Uint16Array)||(obj instanceof Int32Array)||(obj instanceof Uint32Array)||(obj instanceof Float32Array)||(obj instanceof Float64Array)) c+=obj.byteLength;
+	return c;
+	}
 case 18:return (!typed)?8:9;
 case 19:return  ((!typed)?4:5)+obj.source.length;
 case 20: return  ((!typed)?4:5)+Math.ceil(obj.length()/8);
 }	
 };
-
-BON.serialize=function(obj,stripped,checksum){
-var size=this.calculateSize(true,!stripped,stripped,obj);	
+  
+BON.serialize=function(obj,stripped,checksum,t){
+var size=this.calculateSize(true,!stripped,stripped,obj,t);
+if (t!=undefined) size--;	
 if (checksum) size+=4;
 var buffer=(new Uint8Array(size));
 data=new Binary(buffer.buffer);
@@ -1145,7 +1215,7 @@ case 19: data.fromUTF8(obj.source);break;
 case 20: data.fromBitSet(obj);break;
 }
 };
-_serialize(!stripped,stripped,data,obj);
+if (t==undefined) _serialize(!stripped,stripped,data,obj); else _serialize(!stripped,stripped,data,obj,t);
 if (checksum)	data.fromUint32(Binary.crc32(buffer,buffer.length-4));
 return buffer;
 };
@@ -1189,7 +1259,7 @@ case 13: data.fromUint64(obj.value);break;
 case 14: data.fromInt64(obj.value);break;
 case 15: data.fromFloat32(obj);break;
 case 16: data.fromFloat64(obj);break;
-case 17: data.fromBinary(obj);break;
+case 17: data.fromBuffer(obj);break;
 case 18: data.fromUint64(new UInt64(obj.getTime() + obj.getTimezoneOffset() * 60000));break;
 case 19: data.fromUTF8(obj.source);break;
 case 20: data.fromBitSet(obj);break;
@@ -1277,7 +1347,7 @@ case 20: return data.toBitSet();
 	
 };
 var r= _deserialize(data,t); 
-if (data.offset!=buffer.byteLength-(checksum?4:0)) throw "data doesn't cover all the buffer";
+if (t==undefined && data.offset!=buffer.byteLength-(checksum?4:0)) throw "data doesn't cover all the buffer";
 return r;
 };
 
