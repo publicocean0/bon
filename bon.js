@@ -534,6 +534,31 @@ this.offset+=4+data.byteLength;
 	
 };
 
+function EID(hi,lo){
+if (hi instanceof String){
+this.hi = parseInt(s.substring(0,13),36);
+this.low =  parseInt(s.substring(13),36);
+} else {
+this.hi=hi;	
+this.lo=lo;
+}
+var insertAt=function(s,index, string) { 
+  return s.substr(0, index) + string + s.substr(index);
+}
+var pad= function(str,  size,  padChar)
+	{
+	  var padded = str;
+	  while (padded.length < size)
+	  {
+	    padded=insertAt(padded,0,padChar);
+	  }
+	  return padded.toString();
+	}
+this.toString=function(){
+return pad(this.hi.toString( 36),13,'0').concat(pad(this.lo.toString(36),13,'0')).toUpperCase();
+};
+	
+};
 
 function UInt64(hi,lo){
 
@@ -1056,6 +1081,8 @@ return 18;
 return 16;
 }else if (obj instanceof BitSet) {
 return 20;
+}else if (obj instanceof EID) {
+return 21;
 }else if (obj instanceof TypedNumber) {
 switch(obj.type){
 	case "int8":return 8;	
@@ -1144,6 +1171,7 @@ case 17: {
 case 18:return (!typed)?8:9;
 case 19:return  ((!typed)?4:5)+obj.source.length;
 case 20: return  ((!typed)?4:5)+Math.ceil(obj.length()/8);
+case 21:return (!typed)?16:17;
 }	
 };
   
@@ -1213,6 +1241,7 @@ case 17: data.fromBinary(obj);break;
 case 18: data.fromUint64(new UInt64(obj.getTime() + obj.getTimezoneOffset() * 60000));break;
 case 19: data.fromUTF8(obj.source);break;
 case 20: data.fromBitSet(obj);break;
+case 21: data.fromUint64(new UInt64(obj.hi));data.fromUint64(new UInt64(obj.lo));break;
 }
 };
 if (t==undefined) _serialize(!stripped,stripped,data,obj); else _serialize(!stripped,stripped,data,obj,t);
@@ -1263,6 +1292,7 @@ case 17: data.fromBuffer(obj);break;
 case 18: data.fromUint64(new UInt64(obj.getTime() + obj.getTimezoneOffset() * 60000));break;
 case 19: data.fromUTF8(obj.source);break;
 case 20: data.fromBitSet(obj);break;
+case 21: data.fromUint64(new UInt64(obj.hi));data.fromUint64(new UInt64(obj.lo));break;
 }
 };
 _serialize(data,obj);
@@ -1343,6 +1373,7 @@ case 17: return data.toBinary();
 case 18: return new Date(data.toUint64().value.toNumber(true)-TIMEZONEOFFSET*60000);
 case 19: return new RegExp(data.toUTF8());	
 case 20: return data.toBitSet();
+case 21: return new EID(data.toUint64().toNumber(false),data.toUint64().toNumber(false));
 }	
 	
 };
