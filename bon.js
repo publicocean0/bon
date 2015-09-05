@@ -495,14 +495,15 @@ Binary.prototype.setOffset= function(a){
 this.offset=a;
 };
 
-Binary.prototype.toBinary    = function(){ 
-var size=this.dataview.getUint32(this.offset);	
-var r=this.dataview.buffer.slice(this.offset+4,this.offset+4+size);	
+Binary.prototype.toBinary    = function(size){ 
+if (size==undefined) {size=this.dataview.getUint32(this.offset);this.offset+=4;}	
+var r=this.dataview.buffer.slice(this.offset,this.offset+size);	
 this.offset+=4+size;
 return r;
 };
 
-Binary.prototype.fromBinary    = function( data ){ 
+Binary.prototype.fromBinary    = function( data,fixed ){ 
+if (fixed == undefined) fixed=false;
 if (data instanceof Blob) {
 var uint8ArrayNew  = null;
 var arrayBufferNew = null;
@@ -525,39 +526,81 @@ data=fileReader.result; // also accessible this way once the blob has been read
 } else {
 data =  new Uint8Array(data);	
 }
-
+if (!fixed){
 this.dataview.setUint32(this.offset,data.byteLength,false);	
 var j=this.offset+4;
 for(var i=0;i<data.byteLength;i++)	this.dataview.setUint8(j++,data[i]);	
 this.offset+=4+data.byteLength;
-
+}else {
+var j=this.offset;
+for(var i=0;i<data.byteLength;i++)	this.dataview.setUint8(j++,data[i]);	
+this.offset+=data.byteLength;
+}
 	
 };
+var BASE36='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';	
 
-function EID(hi,lo){
-if (hi instanceof String){
-this.hi = parseInt(s.substring(0,13),36);
-this.low =  parseInt(s.substring(13),36);
+ 
+
+function EID(buffer){
+
+if (typeInstance(buffer)=='string'){
+	var getSymbol=function(s,i){
+		var ch = s.charCodeAt(i);
+		if (ch >= 48 && ch <= 57)
+			return ch -48;
+		else if (ch >= 65 && ch <= 90)
+			return ch -55;
+		else
+			throw "illegal character at position " + i;
+	};
+	this.value=new Uint8Array(16);
+	buffer=buffer.toUpperCase();
+	var q = 0;
+		var r = 0;
+		var i = 0;
+		var p = 15;
+		var len=buffer.length;
+		do {
+			if (q < 256 && i < len) {
+	 			q = q * 36 + getSymbol(buffer, i++);
+				continue;
+			}
+			r = q % 256;
+			q = Math.floor(q / 256);
+
+			this.value[p--] =  r;
+			if (p==-1) break;
+
+		} while ((i < len)||((i==len||p==15)&&q>0));
+       for(;p>0;p--)this.value[p--]=0;
+
 } else {
-this.hi=hi;	
-this.lo=lo;
+this.value=buffer;	
+
 }
-var insertAt=function(s,index, string) { 
-  return s.substr(0, index) + string + s.substr(index);
-}
-var pad= function(str,  size,  padChar)
-	{
-	  var padded = str;
-	  while (padded.length < size)
-	  {
-	    padded=insertAt(padded,0,padChar);
-	  }
-	  return padded.toString();
-	}
-this.toString=function(){
-return pad(this.hi.toString( 36),13,'0').concat(pad(this.lo.toString(36),13,'0')).toUpperCase();
-};
 	
+};
+
+
+EID.prototype.toString=function(){
+	var  q = 0;var sb='';
+		var r = 0;
+		var  i = 0;
+
+		do {
+			if (q < 36 && i <= 15) {
+				q = q * 256 + (this.value[i++] & 0xFF);
+				continue;
+			}
+			r = q % 36;
+			q = Math.floor(q / 36);
+
+			sb=BASE36[r]+sb
+
+		} while (i <= 15 ||( i==16 &&q>0));
+		if (sb.length==0) sb='0';
+		return sb;
 };
 
 function UInt64(hi,lo){
@@ -1241,7 +1284,7 @@ case 17: data.fromBinary(obj);break;
 case 18: data.fromUint64(new UInt64(obj.getTime() + obj.getTimezoneOffset() * 60000));break;
 case 19: data.fromUTF8(obj.source);break;
 case 20: data.fromBitSet(obj);break;
-case 21: data.fromUint64(new UInt64(obj.hi));data.fromUint64(new UInt64(obj.lo));break;
+case 21: data.fromBinary(obj.value,true);break;
 }
 };
 if (t==undefined) _serialize(!stripped,stripped,data,obj); else _serialize(!stripped,stripped,data,obj,t);
@@ -1269,7 +1312,7 @@ _serialize(data,o);
 }
 }break;
 case 3:case 4:{
-var o;	
+var o;	  
 for(var i=0;i<obj.length;i++){
 o=obj[i];
 _serialize(data,o);
@@ -1292,7 +1335,7 @@ case 17: data.fromBuffer(obj);break;
 case 18: data.fromUint64(new UInt64(obj.getTime() + obj.getTimezoneOffset() * 60000));break;
 case 19: data.fromUTF8(obj.source);break;
 case 20: data.fromBitSet(obj);break;
-case 21: data.fromUint64(new UInt64(obj.hi));data.fromUint64(new UInt64(obj.lo));break;
+case 21: data.fromBinary(obj.value,true);break;
 }
 };
 _serialize(data,obj);
@@ -1373,7 +1416,7 @@ case 17: return data.toBinary();
 case 18: return new Date(data.toUint64().value.toNumber(true)-TIMEZONEOFFSET*60000);
 case 19: return new RegExp(data.toUTF8());	
 case 20: return data.toBitSet();
-case 21: return new EID(data.toUint64().toNumber(false),data.toUint64().toNumber(false));
+case 21: return new EID(data.toBinary(16));
 }	
 	
 };
