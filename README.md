@@ -9,22 +9,25 @@ The main data types are:
  * 2 untyped object
  * 3 typed array
  * 4 untyped array
- * 5 bool
- * 6 utf
- * 7 uint8 
- * 8 int8
- * 9 uint16
- * 10 int16
- * 11 uint32
- * 12 int32
- * 13 uint64
- * 14 int64
- * 15 float32
- * 16 float64
- * 17 binary
- * 18 date
- * 19 regexp
- * 20 bitset
+ * 5 typed iterator
+ * 6 untyped iterator
+ * 7 entity id 
+ * 8 bool
+ * 9 utf
+ * 10 uint8 
+ * 11 int8
+ * 12 uint16
+ * 13 int16
+ * 14 uint32
+ * 15 int32
+ * 16 uint64
+ * 17 int64
+ * 18 float32
+ * 19 float64
+ * 20 binary
+ * 21 date
+ * 22 regexp
+ * 23 bitset
  
 The numbers are serialized in big endian order. The properties names are encoded in a 6bit binary(accepted characters are [ a-z, A-Z,0-9, _ ,$] , maximum length is 255 ).
 
