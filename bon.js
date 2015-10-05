@@ -937,22 +937,25 @@ Binary.crc32=function crc32 (buffer,len ) {
  * 2 untypedobject
  * 3 typedarray
  * 4 untypedarray
- * 5 bool
- * 6 utf8
- * 7 uint8 
- * 8 int8
- * 9 uint16
- * 10 int16
- * 11 uint32
- * 12 int32
- * 13 uint64
- * 14 int64
- * 15 float32
- * 16 float64
- * 17 binary
- * 18 date
- * 19 regexp
- * 20 bitset
+ * 5 typediterator
+ * 6 untypediterator
+ * 7 euid
+ * 8 bool
+ * 9 utf8
+ * 10 uint8 
+ * 11 int8
+ * 12 uint16
+ * 13 int16
+ * 14 uint32
+ * 15 int32
+ * 16 uint64
+ * 17 int64
+ * 18 float32
+ * 19 float64
+ * 20 binary
+ * 21 date
+ * 22 regexp
+ * 23 bitset
  * ... optional
  * */
 
@@ -1113,35 +1116,35 @@ function BON(){};
 BON.getType=function(obj){
 if (obj==null||obj==undefined) return 0;
 else if (obj instanceof String) {
-return 6;
+return 9;
 } else if (obj instanceof Boolean) {
-return 5;
+return 8;
 }else if (obj instanceof RegExp) {
-return 19;
+return 22;
 }else if (obj instanceof Date) {
-return 18;
-}else if (obj instanceof Number) {
-return 16;
-}else if (obj instanceof BitSet) {
-return 20;
-}else if (obj instanceof EID) {
 return 21;
+}else if (obj instanceof Number) {
+return 19;
+}else if (obj instanceof BitSet) {
+return 23;
+}else if (obj instanceof EID) {
+return 7;
 }else if (obj instanceof TypedNumber) {
 switch(obj.type){
-	case "int8":return 8;	
-	case "uint8":return 7;	
-	case "int16":return 10;	
-	case "uint16":return 9;	
-	case "int32":return 12;	
-	case "uint32":return 11;	
-	case "int64":return 14;	
-	case "uint64":return 13;
-	case "float32":return 15;
-	case "float64":return 16;
+	case "int8":return 11;	
+	case "uint8":return 10;	
+	case "int16":return 13;	
+	case "uint16":return 12;	
+	case "int32":return 15;	
+	case "uint32":return 14;	
+	case "int64":return 17;	
+	case "uint64":return 16;
+	case "float32":return 18;
+	case "float64":return 19;
 }
 } else if ((obj instanceof ArrayBuffer)||(obj instanceof Blob)||(obj instanceof Int8Array)
 ||(obj instanceof Uint8Array)||(obj instanceof Int16Array)||(obj instanceof Uint16Array)||(obj instanceof Int32Array)||(obj instanceof Uint32Array)||(obj instanceof Float32Array)||(obj instanceof Float64Array))	{
-return 17;
+return 20;
 } else if (Array.isArray(obj))	{
 return (Array.isTyped(obj))?3:4;
 }
@@ -1151,9 +1154,9 @@ return  (Object.isTyped(obj))?1:2;
 else {
 var type=typeof(obj);
 switch(type){
-case "string":return 6;
-case "boolean":return 5;
-case "number":return 16;	
+case "string":return 9;
+case "boolean":return 8;
+case "number":return 19;	
 }		
 	
 }
@@ -1196,25 +1199,38 @@ case 4:{
 	for(var i=0;i<obj.length;i++) size+=BON.calculateSize(enumerable,!stripped,stripped,obj[i]);
 	return size;
 }
-case 5:return (!typed)?1:2;	
-case 6:return ((!typed)?0:1)+Binary.UTF8Length(obj);
-case 7:case 8:return  (!typed)?1:2;
-case 9:case 10:return (!typed)?2:3;
-case 11:case 12:return (!typed)?4:5;
-case 13:case 14:return (!typed)?8:9;
-case 15:return (!typed)?4:5;
-case 16:return (!typed)?8:9;
-case 17: {
+case 5:	{
+	var size=0;
+	size+=(!typed)?0:1;
+	if (obj.length>0) size+=obj.length*(1+BON.calculateSize(enumerable,false,stripped,obj[0]));
+	return size;
+}
+case 6:{
+	var size=0;
+	size+=(!typed)?0:1;
+	for(var i=0;i<obj.length;i++) size+=1+BON.calculateSize(enumerable,!stripped,stripped,obj[i]);
+	return size;
+}
+case 7:return (!typed)?16:17;
+case 8:return (!typed)?1:2;	
+case 9:return ((!typed)?0:1)+Binary.UTF8Length(obj);
+case 10:case 11:return  (!typed)?1:2;
+case 13:return (!typed)?2:3;
+case 14:case 15:return (!typed)?4:5;
+case 16:case 17:return (!typed)?8:9;
+case 18:return (!typed)?4:5;
+case 19:return (!typed)?8:9;
+case 20: {
 	var c=(enumerable)?4:0;
 	c+=(!typed)?0:1;
 	if (obj instanceof Blob) c+=obj.size; 
 	else if ((obj instanceof ArrayBuffer)||(obj instanceof Int8Array)||(obj instanceof Uint8Array)||(obj instanceof Int16Array)||(obj instanceof Uint16Array)||(obj instanceof Int32Array)||(obj instanceof Uint32Array)||(obj instanceof Float32Array)||(obj instanceof Float64Array)) c+=obj.byteLength;
 	return c;
 	}
-case 18:return (!typed)?8:9;
-case 19:return  ((!typed)?4:5)+obj.source.length;
-case 20: return  ((!typed)?4:5)+Math.ceil(obj.length()/8);
-case 21:return (!typed)?16:17;
+case 21:return (!typed)?8:9;
+case 22:return  ((!typed)?4:5)+obj.source.length;
+case 23: return  ((!typed)?4:5)+Math.ceil(obj.length()/8);
+
 }	
 };
   
@@ -1267,24 +1283,45 @@ o=obj[i];
 _serialize(!stripped,stripped,data,o);
 }
 }break;
+case 5:{
+data.fromUint32(obj.length);
+var o=obj[0],tt=BON.getType(o);	
+if (!stripped) data.fromUint8(tt);
+for(var i=0;i<obj.length;i++){
+	data.fromBoolean(true);
+o=obj[i];
+_serialize(false,stripped,data,o,tt);
+}
+data.fromBoolean(false);
+}break;
+case 6:{
+data.fromUint32(obj.length);
+var o;	
+for(var i=0;i<obj.length;i++){
+o=obj[i];
+data.fromBoolean(true);
+_serialize(!stripped,stripped,data,o);
+}
+data.fromBoolean(false);
+}break;
+case 7: data.fromBinary(obj.value,true);break;
+case 8: data.fromBoolean(obj);break;
+case 9: data.fromUTF8(obj);break;
+case 10: data.fromUint8(obj);break;
+case 11: data.fromInt8(obj);break;
+case 12: data.fromUint16(obj);break;
+case 13: data.fromInt16(obj);break;
+case 14: data.fromUint32(obj);break;
+case 15: data.fromInt32(obj);break;
+case 16: data.fromUint64(obj.value);break;
+case 17: data.fromInt64(obj.value);break;
+case 18: data.fromFloat32(obj);break;
+case 19: data.fromFloat64(obj);break;
+case 20: data.fromBinary(obj);break;
+case 21: data.fromUint64(new UInt64(obj.getTime() + obj.getTimezoneOffset() * 60000));break;
+case 22: data.fromUTF8(obj.source);break;
+case 23: data.fromBitSet(obj);break;
 
-case 5: data.fromBoolean(obj);break;
-case 6: data.fromUTF8(obj);break;
-case 7: data.fromUint8(obj);break;
-case 8: data.fromInt8(obj);break;
-case 9: data.fromUint16(obj);break;
-case 10: data.fromInt16(obj);break;
-case 11: data.fromUint32(obj);break;
-case 12: data.fromInt32(obj);break;
-case 13: data.fromUint64(obj.value);break;
-case 14: data.fromInt64(obj.value);break;
-case 15: data.fromFloat32(obj);break;
-case 16: data.fromFloat64(obj);break;
-case 17: data.fromBinary(obj);break;
-case 18: data.fromUint64(new UInt64(obj.getTime() + obj.getTimezoneOffset() * 60000));break;
-case 19: data.fromUTF8(obj.source);break;
-case 20: data.fromBitSet(obj);break;
-case 21: data.fromBinary(obj.value,true);break;
 }
 };
 if (t==undefined) _serialize(!stripped,stripped,data,obj); else _serialize(!stripped,stripped,data,obj,t);
@@ -1318,24 +1355,31 @@ o=obj[i];
 _serialize(data,o);
 }
 }break;
+case 5:case 6:{
+var o;	  
+for(var i=0;i<obj.length;i++){
+o=obj[i];
+_serialize(data,o);
+}
+}break;
+case 7: data.fromBinary(obj.value,true);break;
+case 8: data.fromBoolean(obj);break;
+case 9: data.fromUTF8(obj);break;
+case 10: data.fromUint8(obj);break;
+case 11: data.fromInt8(obj);break;
+case 12: data.fromUint16(obj);break;
+case 13: data.fromInt16(obj);break;
+case 14: data.fromUint32(obj);break;
+case 15: data.fromInt32(obj);break;
+case 16: data.fromUint64(obj.value);break;
+case 17: data.fromInt64(obj.value);break;
+case 18: data.fromFloat32(obj);break;
+case 19: data.fromFloat64(obj);break;
+case 20: data.fromBuffer(obj);break;
+case 21: data.fromUint64(new UInt64(obj.getTime() + obj.getTimezoneOffset() * 60000));break;
+case 22: data.fromUTF8(obj.source);break;
+case 23: data.fromBitSet(obj);break;
 
-case 5: data.fromBoolean(obj);break;
-case 6: data.fromUTF8(obj);break;
-case 7: data.fromUint8(obj);break;
-case 8: data.fromInt8(obj);break;
-case 9: data.fromUint16(obj);break;
-case 10: data.fromInt16(obj);break;
-case 11: data.fromUint32(obj);break;
-case 12: data.fromInt32(obj);break;
-case 13: data.fromUint64(obj.value);break;
-case 14: data.fromInt64(obj.value);break;
-case 15: data.fromFloat32(obj);break;
-case 16: data.fromFloat64(obj);break;
-case 17: data.fromBuffer(obj);break;
-case 18: data.fromUint64(new UInt64(obj.getTime() + obj.getTimezoneOffset() * 60000));break;
-case 19: data.fromUTF8(obj.source);break;
-case 20: data.fromBitSet(obj);break;
-case 21: data.fromBinary(obj.value,true);break;
 }
 };
 _serialize(data,obj);
@@ -1398,25 +1442,41 @@ o.push(_deserialize(data));
 }		
 return o;	
 } 
+case 5:{
+var o=new Array();
+var tt=data.decodeInt(8, false  );
+while(true){
+if (!data.decodeBoolean()) break;	
+o.push(_deserialize(data,tt));	
+}	
+return o;	
+} 
+case 6:{
+var o=new Array();
+while(true){
+if (!data.decodeBoolean()) break;	
+o.push(_deserialize(data));	
+}		
+return o;	
+} 
+case 7: return new EID(data.toBinary(16));
+case 8: return data.toBoolean();
+case 9: return data.toUTF8();
+case 10: return data.toUint8();
+case 11: return data.toInt8();
+case 12: return data.toUint16();
+case 13: return data.toInt16();
+case 14: return data.toUint32();
+case 15: return data.toInt32();
+case 16: return data.toUint64();
+case 17: return data.toUint64();
+case 18: return data.toFloat32();
+case 19: return data.toFloat64();
+case 20: return data.toBinary();
+case 21: return new Date(data.toUint64().value.toNumber(true)-TIMEZONEOFFSET*60000);
+case 22: return new RegExp(data.toUTF8());	
+case 23: return data.toBitSet();
 
-
-case 5: return data.toBoolean();
-case 6: return data.toUTF8();
-case 7: return data.toUint8();
-case 8: return data.toInt8();
-case 9: return data.toUint16();
-case 10: return data.toInt16();
-case 11: return data.toUint32();
-case 12: return data.toInt32();
-case 13: return data.toUint64();
-case 14: return data.toUint64();
-case 15: return data.toFloat32();
-case 16: return data.toFloat64();
-case 17: return data.toBinary();
-case 18: return new Date(data.toUint64().value.toNumber(true)-TIMEZONEOFFSET*60000);
-case 19: return new RegExp(data.toUTF8());	
-case 20: return data.toBitSet();
-case 21: return new EID(data.toBinary(16));
 }	
 	
 };
