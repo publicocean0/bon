@@ -1215,7 +1215,7 @@ case 7:return (!typed)?16:17;
 case 8:return (!typed)?1:2;	
 case 9:return ((!typed)?0:1)+Binary.UTF8Length(obj);
 case 10:case 11:return  (!typed)?1:2;
-case 13:return (!typed)?2:3;
+case 12:case 13:return (!typed)?2:3;
 case 14:case 15:return (!typed)?4:5;
 case 16:case 17:return (!typed)?8:9;
 case 18:return (!typed)?4:5;
