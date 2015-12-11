@@ -58,7 +58,7 @@ for(var n = 0; n < 102; n++) {   if (n%2) continue;   bs.set(n); }
 var b=[new Date(),{},null,{a:3,b:"ciao ",c:true,d:new TypedNumber(200,'uint64'),e:bs}];
 console.log(JSON.stringify(b)); // you can see object before serialization
 var r=BON.serialize(b);
-console.log(r);
+console.log(r); // you can see the binary format of this object
 var t=BON.deserialize(r);
 console.log(JSON.stringify(t)); // you can see object after deserialization
 </pre>
