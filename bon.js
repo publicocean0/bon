@@ -208,7 +208,7 @@ this.offset+=8;
 default : throw new Exception("integer length not correct");	
 }
 	
-}; 
+};    
 
 Binary.prototype.toObject=function(check,t){
 	var tmp = new Uint8Array( this.dataview.buffer );
@@ -1377,7 +1377,7 @@ case 18: data.fromUint64(obj.value);break;
 case 19: data.fromInt64(obj.value);break;
 case 20: data.fromFloat32(obj);break;
 case 21: data.fromFloat64(obj);break;
-case 22: data.fromBinary(obj);break;
+case 22: data.fromBinary(obj,true);break;
 case 23: data.fromUint64(new UInt64(obj.getTime() + obj.getTimezoneOffset() * 60000));break;
 case 24: data.fromUTF8(obj.source);break;
 case 25: data.fromBitSet(obj);break;
