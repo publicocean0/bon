@@ -45,8 +45,9 @@ In the stripped mode, the serialization dont save data types of the object (in n
 You can also to imagine to use in a part stripped mode and in a part unstripped mode.  
 Methods:
 <pre>
-serialize (object , stripped, with_checksum)
-unserialize (binary ,with_checksum) /* to use in unstripped mode. */
+serialize (object , stripped=false, with_checksum=false) /* serialize data ,you can strip data type, you can add checksum at the end of buffer*/
+encode (object ,  with_checksum=false) /* serialize removing data type info and containers info*/
+unserialize (binary ,with_checksum=false) /* to use in unstripped mode. */
 </pre>
 
 Example :  
