@@ -13,7 +13,7 @@ The main data types are:
  * 6 untyped iterator ( a iterator of elements of not foreseeable type)
  * 7 entity id ( EID object is a 128bit universal identifier: you can convert it in a alphanumeric string and vs )
  * 8 reference (Reference object is a 32bit reference for other data , for example attachments )
- * 9 type ( type of data: used for defining schema )
+ * 9 type (Type object is used for defining data type when you want for example to create a structure saving just a schema of a object )
  * 10 bool (boolean data or Boolean object)
  * 11 utf8 (string data or String object)
  * 12 uint8 (TypedNumber )
