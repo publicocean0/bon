@@ -5,15 +5,15 @@ There are 24 different of data type already defined, but you can extend the prot
 The main data types are:
 
  * 0 null
- * 1 typed object
- * 2 untyped object
- * 3 typed array
- * 4 untyped array
- * 5 typed iterator
- * 6 untyped iterator
- * 7 entity id 
- * 8 reference
- * 9 type
+ * 1 typed object (object with properties all of same type)
+ * 2 untyped object (object with properties of different types)
+ * 3 typed array (array with elements all of same type)
+ * 4 untyped array (array with elements if different types)
+ * 5 typed iterator ( a iterator of elements of specific type)
+ * 6 untyped iterator ( a iterator of elements of not foreseeable type)
+ * 7 entity id ( EID object is a 128bit universal identifier )
+ * 8 reference (Reference object is a 32bit reference for other data , for example attachments )
+ * 9 type ( type of data: used for defining schema )
  * 10 bool
  * 11 utf
  * 12 uint8 
