@@ -1,35 +1,35 @@
 # BON (Binary Object Notation)
 
 BON is a binary notation for a fast conversion of object, defined for working in every programmaing languages.
-There are 24 different of data type already defined, but you can extend the protocol with other custom serialization. 
+There are 25 different of data type already defined, but you can extend the protocol with other custom serialization. 
 The main data types are:
 
- * 0 null
- * 1 typed object
- * 2 untyped object
- * 3 typed array
- * 4 untyped array
- * 5 typed iterator
- * 6 untyped iterator
- * 7 entity id 
- * 8 reference
- * 9 type
- * 10 bool
- * 11 utf
- * 12 uint8 
- * 13 int8
- * 14 uint16
- * 15 int16
- * 16 uint32
- * 17 int32
- * 18 uint64
- * 19 int64
- * 20 float32
- * 21 float64
- * 22 binary
- * 23 date
- * 24 regexp
- * 25 bitset
+ * 0 null ( null or undefined value)
+ * 1 typed object (object with properties all of same type)
+ * 2 untyped object (object with properties of different types)
+ * 3 typed array (array with elements all of same type)
+ * 4 untyped array (array with elements if different types)
+ * 5 typed iterator ( a iterator of elements of specific type)
+ * 6 untyped iterator ( a iterator of elements of not foreseeable type)
+ * 7 entity id ( EID object is a 128bit universal identifier: you can convert it in a alphanumeric string and vs )
+ * 8 reference (Reference object is a 32bit reference for other data , for example attachments )
+ * 9 type ( type of data: used for defining schema )
+ * 10 bool (boolean data or Boolean object)
+ * 11 utf8 (string data or String object)
+ * 12 uint8 (TypedNumber )
+ * 13 int8 (TypedNumber )
+ * 14 uint16 (TypedNumber )
+ * 15 int16 (TypedNumber )
+ * 16 uint32 (TypedNumber )
+ * 17 int32 (TypedNumber )
+ * 18 uint64 (TypedNumber )
+ * 19 int64 (TypedNumber )
+ * 20 float32 (TypedNumber )
+ * 21 float64 (TypedNumber or Number object or number data )
+ * 22 binary (ArrayBuffer or  Blob object)
+ * 23 date (Date object)
+ * 24 regexp (RegExp object)
+ * 25 bitset (BitSet is a object for handling a set of bits)
  
 The numbers are serialized in big endian order. The properties names are encoded in a 6bit binary(accepted characters are [ a-z, A-Z,0-9, _ ,$] , maximum length is 255 ).
 
@@ -45,8 +45,9 @@ In the stripped mode, the serialization dont save data types of the object (in n
 You can also to imagine to use in a part stripped mode and in a part unstripped mode.  
 Methods:
 <pre>
-serialize (object , stripped, with_checksum)
-unserialize (binary ,with_checksum) /* to use in unstripped mode. */
+serialize (object , stripped=false, with_checksum=false) /* serialize data ,you can strip data type, you can add checksum at the end of buffer*/
+encode (object ,  with_checksum=false) /* serialize removing data type info and containers info*/
+unserialize (binary ,with_checksum=false) /* to use in unstripped mode. */
 </pre>
 
 Example :  
