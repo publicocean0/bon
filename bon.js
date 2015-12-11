@@ -1261,6 +1261,8 @@ case 25: return  ((!typed)?4:5)+Math.ceil(obj.length()/8);
 };
   
 BON.serialize=function(obj,stripped,checksum,t){
+if (stripped==undefined) stripped=false;
+if (checksum==undefined) checksum=false;
 var size=this.calculateSize(true,!stripped,stripped,obj,t);
 if (t!=undefined) size--;	
 if (checksum) size+=4;
@@ -1338,6 +1340,7 @@ return buffer;
 
 
 BON.encode=function(obj,checksum){
+if (checksum==undefined) checksum=false;
 var size=this.calculateSize(false,false,true,obj);	
 if (checksum) size+=4;
 var buffer=(new Uint8Array(size));
@@ -1390,6 +1393,7 @@ return buffer;
 };
 
 BON.deserialize=function(buffer,checksum,t){
+if (checksum==undefined) checksum=false;
 var ar;
 if ((buffer instanceof Int8Array)||(buffer instanceof Uint8Array)||( buffer instanceof Int16Array) ||( buffer instanceof Uint16Array)
 ||( buffer instanceof Int32Array)||( buffer instanceof Uint32Array)||( buffer instanceof Float32Array)||( buffer instanceof Float64Array)) ar=buffer.buffer;
