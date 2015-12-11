@@ -11,7 +11,7 @@ The main data types are:
  * 4 untyped array (array with elements if different types)
  * 5 typed iterator ( a iterator of elements of specific type)
  * 6 untyped iterator ( a iterator of elements of not foreseeable type)
- * 7 entity id ( EID object is a 128bit universal identifier )
+ * 7 entity id ( EID object is a 128bit universal identifier: you can convert it in a alphanumeric string and vs )
  * 8 reference (Reference object is a 32bit reference for other data , for example attachments )
  * 9 type ( type of data: used for defining schema )
  * 10 bool
