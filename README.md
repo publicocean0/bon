@@ -12,22 +12,24 @@ The main data types are:
  * 5 typed iterator
  * 6 untyped iterator
  * 7 entity id 
- * 8 bool
- * 9 utf
- * 10 uint8 
- * 11 int8
- * 12 uint16
- * 13 int16
- * 14 uint32
- * 15 int32
- * 16 uint64
- * 17 int64
- * 18 float32
- * 19 float64
- * 20 binary
- * 21 date
- * 22 regexp
- * 23 bitset
+ * 8 reference
+ * 9 type
+ * 10 bool
+ * 11 utf
+ * 12 uint8 
+ * 13 int8
+ * 14 uint16
+ * 15 int16
+ * 16 uint32
+ * 17 int32
+ * 18 uint64
+ * 19 int64
+ * 20 float32
+ * 21 float64
+ * 22 binary
+ * 23 date
+ * 24 regexp
+ * 25 bitset
  
 The numbers are serialized in big endian order. The properties names are encoded in a 6bit binary(accepted characters are [ a-z, A-Z,0-9, _ ,$] , maximum length is 255 ).
 
