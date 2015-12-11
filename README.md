@@ -29,7 +29,7 @@ The main data types are:
  * 22 binary (ArrayBuffer or  Blob object)
  * 23 date (Date object)
  * 24 regexp (RegExp object)
- * 25 bitset (BitSet is a object for saving a set of bits)
+ * 25 bitset (BitSet is a object for handling a set of bits)
  
 The numbers are serialized in big endian order. The properties names are encoded in a 6bit binary(accepted characters are [ a-z, A-Z,0-9, _ ,$] , maximum length is 255 ).
 
