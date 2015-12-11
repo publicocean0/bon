@@ -54,19 +54,13 @@ Example :
 
 <pre>
 var bs = new BitSet();
-
-for(var n = 0; n < 102; n++) {
-  if (n%2) continue;
-  bs.set(n);
-}
-console.log(bs.length());
-var a=new TypedNumber(200,'uint64');
-var b=[new Date(),{},null,{a:3,b:"ciao ",c:true,d:a,e:bs}];
-console.log(JSON.stringify(b));
+for(var n = 0; n < 102; n++) {   if (n%2) continue;   bs.set(n); }
+var b=[new Date(),{},null,{a:3,b:"ciao ",c:true,d:new TypedNumber(200,'uint64'),e:bs}];
+console.log(JSON.stringify(b)); // you can see object before serialization
 var r=BON.serialize(b);
 console.log(r);
 var t=BON.deserialize(r);
-console.log(JSON.stringify(t));
+console.log(JSON.stringify(t)); // you can see object after deserialization
 </pre>
 
 
