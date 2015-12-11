@@ -63,9 +63,9 @@ console.log(bs.length());
 var a=new TypedNumber(200,'uint64');
 var b=[new Date(),{},null,{a:3,b:"ciao ",c:true,d:a,e:bs}];
 console.log(JSON.stringify(b));
-var r=BON.serialize(b,false,true);
+var r=BON.serialize(b);
 console.log(r);
-var t=BON.deserialize(r,true);
+var t=BON.deserialize(r);
 console.log(JSON.stringify(t));
 </pre>
 
