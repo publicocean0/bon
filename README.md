@@ -4,7 +4,7 @@ BON is a binary notation for a fast conversion of object, defined for working in
 There are 24 different of data type already defined, but you can extend the protocol with other custom serialization. 
 The main data types are:
 
- * 0 null
+ * 0 null ( null or undefined value)
  * 1 typed object (object with properties all of same type)
  * 2 untyped object (object with properties of different types)
  * 3 typed array (array with elements all of same type)
