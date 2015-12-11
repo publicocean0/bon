@@ -1,7 +1,7 @@
 # BON (Binary Object Notation)
 
 BON is a binary notation for a fast conversion of object, defined for working in every programmaing languages.
-There are 24 different of data type already defined, but you can extend the protocol with other custom serialization. 
+There are 25 different of data type already defined, but you can extend the protocol with other custom serialization. 
 The main data types are:
 
  * 0 null ( null or undefined value)
