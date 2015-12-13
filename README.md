@@ -74,7 +74,7 @@ There are many resons:
 
 * 3) BON is simply extendable adding other types for converting in automatic way custom structures.
 
-* 4) BON permits to receive streams of objects by a server. 
+* 4) BON permits to receive streams of objects by a server using iterator type.
 
 * 5) using encode function and stripped mode  you can send binary packet for any specific protocol without to write code for binary conversion. 
 
