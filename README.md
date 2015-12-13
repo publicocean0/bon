@@ -84,7 +84,7 @@ alert(elem);
 ......
 var onReceive=function(buf){
 //when you receive new buffer .... you append it 
-message.addBuffer(buf);
+message.appendBuffer(buf);
 };
 </pre>
 
