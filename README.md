@@ -81,7 +81,11 @@ Example for stream serialization(usable with packet type like UDP(with multiple 
 var ite=message.toUntypedIterator(function(elem,last){
 alert(elem);
 });
-
+......
+var onReceive=function(buf){
+//when you receive new buffer .... you append it 
+message.addBuffer(buf);
+};
 </pre>
 
 <b>Why you might use BON instead BSON?</b>
