@@ -1,7 +1,7 @@
 # BON (Binary Object Notation)
 
 BON is a binary notation for a fast conversion of object, defined for working in every programmaing languages.
-There are 25 different of data type already defined, but you can extend the protocol with other custom serialization. 
+There are 26 different of data type already defined, but you can extend the protocol with other custom serialization. 
 The main data types are:
 
  * 0 null ( null or undefined value)
@@ -9,8 +9,8 @@ The main data types are:
  * 2 untyped object (object with properties of different types)
  * 3 typed array (array with elements all of same type)
  * 4 untyped array (array with elements if different types)
- * 5 typed iterator ( a iterator of elements of specific type but unforeseeable size)
- * 6 untyped iterator ( a iterator of elements of unforeseeable type and size)
+ * 5 typed iterator ( a iterator of elements of specific type but unforeseeable size. Usefull for a stream of objects)
+ * 6 untyped iterator ( a iterator of elements of unforeseeable type and size.Usefull for a stream of objects)
  * 7 entity id ( EID object is a 128bit universal identifier: you can convert it in a alphanumeric string and vs )
  * 8 reference (Reference object is a 32bit reference for other data , for example attachments )
  * 9 type (Type object is used for defining data type when you want to keep just a schema of a object )
@@ -30,6 +30,7 @@ The main data types are:
  * 23 date (Date object)
  * 24 regexp (RegExp object)
  * 25 bitset (BitSet is a object for handling a set of bits)
+ * 26 property (Property is a object for handling a single couple name - value. It can be used in a iterator for a stream of properties)
  
 The numbers are serialized in big endian order. The properties names are encoded in a 6bit binary(accepted characters are [ a-z, A-Z,0-9, _ ,$] , maximum length is 255 ).
 
