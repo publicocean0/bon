@@ -75,13 +75,13 @@ var e=message.toEID();
 }
 </pre>
 
-Example for stream serialization
+Example for stream serialization(usable with packet type like UDP(with multiple consecutive packets) or TCP)
 <pre>
 
 var ite=message.toUntypedIterator(function(elem,last){
 alert(elem);
 });
-}
+
 </pre>
 
 <b>Why you might use BON instead BSON?</b>
