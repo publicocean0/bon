@@ -78,7 +78,7 @@ There are many resons:
 
 * 5) using encode function and stripped mode  you can send binary packet for any specific protocol without to write code for binary conversion. 
 
-
+* 6) BON is designed for serialization not only of a object but also of the schema of a object. 
 
 
 License
