@@ -65,6 +65,7 @@ console.log(JSON.stringify(t)); // you can see object after deserialization
 </pre>
 
 <b>Why you might use BON instead BSON?</b>
+
 There are many resons: 
 1) BON is a more performant protocol, it use less space for the object rappresentation. In addition is designed for being more general-purpose and not targetted to a specific application.  
 2) BON is has a completely recursive definition: it this way you can use few memory for reading or writing object and using Binary class utility, you can embedded in the binary data also custom data structures.
