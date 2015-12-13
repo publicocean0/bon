@@ -75,6 +75,15 @@ var e=message.toEID();
 }
 </pre>
 
+Example for stream serialization
+<pre>
+
+var ite=message.toUntypedIterator(function(elem,last){
+alert(elem);
+});
+}
+</pre>
+
 <b>Why you might use BON instead BSON?</b>
 
 There are many resons: 
