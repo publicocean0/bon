@@ -561,6 +561,14 @@ function Reference(o){
 if (typeInstance(buffer)!='number') throw "invalid argument";
 this.value=	o;	
 }
+
+function Property(s,o){
+this.name=s;
+this.value=o;
+this.toString=function(){
+return name+"="+o;	
+};
+}
 function EID(buffer){
 
 if (typeInstance(buffer)=='string'){
@@ -978,6 +986,7 @@ Binary.crc32=function crc32 (buffer,len ) {
  * 23 date
  * 24 regexp
  * 25 bitset
+ * 26 property
  * ... optional
  * */
 
@@ -1155,6 +1164,8 @@ return 7;
 return 8;}
 else if (obj instanceof Type) {
 return 9;
+}else if (obj instanceof Property) {
+return 26;
 }else if (obj instanceof TypedNumber) {
 switch(obj.type){
 	case "int8":return 13;	
@@ -1257,6 +1268,7 @@ case 22: {
 case 23:return (!typed)?8:9;
 case 24:return  ((!typed)?4:5)+obj.source.length;
 case 25: return  ((!typed)?4:5)+Math.ceil(obj.length()/8);
+case 26:return ((!typed)?0:1)+Binary.UTF8Length(obj.name)+BON.calculateSize(enumerable,!stripped,stripped,obj.value);
 }	
 };
   
@@ -1330,7 +1342,10 @@ case 22: data.fromBinary(obj);break;
 case 23: data.fromUint64(new UInt64(obj.getTime() + obj.getTimezoneOffset() * 60000));break;
 case 24: data.fromUTF8(obj.source);break;
 case 25: data.fromBitSet(obj);break;
-
+case 26: {
+data.encodeProperty(obj.name);	
+_serialize(!stripped,stripped,data,o);
+} break;
 }
 };
 if (t==undefined) _serialize(!stripped,stripped,data,obj); else _serialize(!stripped,stripped,data,obj,t);
@@ -1384,7 +1399,10 @@ case 22: data.fromBinary(obj,true);break;
 case 23: data.fromUint64(new UInt64(obj.getTime() + obj.getTimezoneOffset() * 60000));break;
 case 24: data.fromUTF8(obj.source);break;
 case 25: data.fromBitSet(obj);break;
-
+case 26: {
+data.encodeProperty(obj.name);	
+_serialize(data,obj.value);
+} break;
 }
 };
 _serialize(data,obj);
@@ -1448,7 +1466,27 @@ o.push(_deserialize(data));
 }		
 return o;	
 } 
-
+case 5:{
+var o=new Array();
+var tt=data.decodeInt(8, false  );
+var step=data.toBoolean();
+while (step){
+o.push(_deserialize(data,tt));	
+step=data.toBoolean();
+}	
+return o;	
+} 
+case 6:{
+var o=new Array();
+var step=data.toBoolean();
+var tt;
+while (step){
+tt=data.decodeInt(8, false  );
+o.push(_deserialize(data,tt));	
+step=data.toBoolean();
+}	
+return o;	
+}
 case 7: return new EID(data.toBinary(16));
 case 8: return new Reference(data.toUint32);
 case 9: return new Type(data.toUint8);
@@ -1468,7 +1506,12 @@ case 22: return data.toBinary();
 case 23: return new Date(data.toUint64().value.toNumber(true)-TIMEZONEOFFSET*60000);
 case 24: return new RegExp(data.toUTF8());	
 case 25: return data.toBitSet();
-
+case 26: {
+	var name=data.decodeProperty();
+	var tt=data.decodeInt(8, false  );
+	return new Property(name,_deserialize(data,tt));
+}
+default: throw "undefined data type with code "+t;
 }	
 	
 };
