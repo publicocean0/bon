@@ -111,5 +111,4 @@ Copyright (c) 2015 Lorenzetto Cristian. Licensed under the MIT license.
 
 
 
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/publicocean0/bon/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
 
