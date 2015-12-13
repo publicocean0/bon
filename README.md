@@ -112,3 +112,7 @@ Copyright (c) 2015 Lorenzetto Cristian. Licensed under the MIT license.
 <center><script type="text/javascript" src="http://widget.supercounters.com/hit.js"></script><script type="text/javascript">sc_hit(1155590,0,5);</script><br><noscript><a href="http://www.supercounters.com">Tumblr Hit Counter</a></noscript>
 </center>
 <!-- END: Powered by Supercounters.com -->
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/publicocean0/bon/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
