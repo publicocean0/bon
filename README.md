@@ -70,7 +70,7 @@ There are many resons:
 
 * 1) BON is a more performant protocol, it uses less space for the object rappresentation. In addition, is designed for being more general-purpose and not targetted to a specific application.  
 
-* 2) BON is has a completely recursive definition: in this way you can use few memory for reading or writing object and using Binary class utility, you can also embed in the binary data custom data structures.
+* 2) BON has a completely recursive definition: in this way you can use few memory for reading or writing object or manipulatin it on the fly. Using Binary class utility, you can also embed in the binary or custom data structures or another object binary calling BON in nested way.
 
 * 3) BON is simply extendable adding other types for converting in automatic way custom structures.
 
