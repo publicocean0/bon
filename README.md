@@ -51,7 +51,7 @@ encode (object ,  with_checksum=false) /* serialize removing data type info and 
 unserialize (binary ,with_checksum=false) /* to use in unstripped mode. */
 </pre>
 
-Example :  
+Example direct serialization :  
 
 <pre>
 var bs = new BitSet();
@@ -62,6 +62,17 @@ var r=BON.serialize(b);
 console.log(r); // you can see the binary format of this object
 var t=BON.deserialize(r);
 console.log(JSON.stringify(t)); // you can see object after deserialization
+</pre>
+
+Example for complex serialization
+<pre>
+var message=new Binary(buffer);
+var obj1=message.toObject();
+if (message.toBoolean()) alert(message.toUTF8());
+else {
+var e=message.toEID();
+.......
+}
 </pre>
 
 <b>Why you might use BON instead BSON?</b>
