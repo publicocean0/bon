@@ -595,7 +595,7 @@ this.offset=a;
 Binary.prototype.toBinary    = function(size){ 
 if (size==undefined) {size=this.dataview.getUint32(this.offset);this.offset+=4;}	
 var r=this.dataview.buffer.slice(this.offset,this.offset+size);	
-this.offset+=4+size;
+this.offset+=size;
 return r;
 };
 
@@ -686,7 +686,7 @@ if (typeInstance(buffer)=='string'){
        for(;p>0;p--)this.value[p--]=0;
 
 } else {
-this.value=buffer;	
+this.value=new Uint8Array(buffer);	
 
 }
 	
@@ -1505,7 +1505,7 @@ var _deserialize=function (data,t){
 if (t==undefined||t==null) t=data.decodeInt(8, false  );
 switch(t){
 case 0: return null;
-case 1:{
+case 1:{ //typed
 var o={};
 var l=data.decodeInt(32, false  );
 if (l>0){
@@ -1517,7 +1517,7 @@ if (l>0){
 }
 return o;	
 }
-case 2: {
+case 2: { //untyped
 var k,o={};
 var l=data.decodeInt(32, false  );
 for(var i=0;i<l;i++){
@@ -1526,7 +1526,7 @@ o[k]=_deserialize(data);
 }
 return o;	
 } 
-case 3:{
+case 3:{ //typed
 var o=new Array();
 var l=data.decodeInt(32, false);
 if (l>0){
@@ -1537,7 +1537,7 @@ if (l>0){
 }
 return o;	
 } 
-case 4:{
+case 4:{ //untyped
 var o=new Array();
 var l=data.decodeInt(32, false  );
 for(var i=0;i<l;i++){
