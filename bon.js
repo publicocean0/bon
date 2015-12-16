@@ -288,7 +288,7 @@ var v;
 var step=this.toBoolean();
 while (step){
 v=this.toObject(false,tt);	
-step=data.toBoolean();
+step=this.toBoolean();
 callback(v,step);
 }	
 }; 
@@ -297,7 +297,7 @@ var tt,v;
 var step=this.toBoolean();
 while (step){
 v=this.toObject();	
-step=data.toBoolean();
+step=this.toBoolean();
 callback(v,step);
 }
 		
