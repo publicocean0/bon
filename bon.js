@@ -49,10 +49,12 @@ if (typeof(Object.isTyped)=='undefined'){
  Object.isTyped = function(obj){
    var type=null;
    var i=0;
+   var o;
    for(var key in obj){
 	   i++;
-      if (type==null) type=typeInstance(obj[key]);
-      else if (type!=typeInstance(obj[key])) return false;
+	   o=obj[key] ;
+      if (type==null) type=(o instanceof TypedNumber)?"typednumber["+o.type+"]":typeInstance(o);
+      else if (type!=typeInstance(o)) return false;
    }
    return (i==0)?false:true;
 };
@@ -60,10 +62,11 @@ if (typeof(Object.isTyped)=='undefined'){
  }
  if (typeof(Array.isTyped)=='undefined'){
  Array.isTyped = function(obj){
-   var type=null;
+   var type=null;var o;
    for(var i=0;i<obj.length;i++){
-      if (type==null) type=typeInstance(obj[i]);
-      else if (type!=typeInstance(obj[i])) return false;
+	   o=obj[i];
+       if (type==null) type=(o instanceof TypedNumber)?"typednumber["+o.type+"]":typeInstance(o);
+      else if (type!=typeInstance(o)) return false;
    }
    return (obj.length==0)?false:true;
 };
