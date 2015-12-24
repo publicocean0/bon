@@ -113,10 +113,148 @@ var  ENDIANESS=checkEndianess();
 var  TIMEZONEOFFSET=new Date().getTimezoneOffset();
  
 function Binary (buffer) { // default big endian(network standard)
-    this.dataview=buffer!=undefined?new DataView(buffer,0):new DataView(new ArrayBuffer(0));
+    if (buffer==undefined) this.dataview=new DataView(new ArrayBuffer(0));
+    else if (buffer instanceof ArrayBuffer) this.dataview=new DataView(buffer,0);
+    else  if (
+    buffer instanceof Uint8Array ||
+           buffer instanceof Int8Array ||
+            buffer instanceof Uint8ClampedArray ||
+            buffer instanceof Int16Array ||
+            buffer instanceof Uint16Array || 
+            buffer instanceof Int32Array ||
+            buffer instanceof Uint32Array ||
+            buffer instanceof Float32Array ||
+            buffer instanceof Float64Array
+        ) 
+            this.dataview=new DataView(buffer.buffer,0);
+    else if (buffer instanceof Array){
+	var b=new Uint8Array(buffer);
+		this.dataview=new DataView(b.buffer,0);
+	} else throw "invalid buffer type";
     this.offset=0;
 
 };
+
+Binary.wordToByteArray=function(wordArray) {
+      // Shortcuts
+            var words = wordArray.words;
+            var l = wordArray.sigBytes;
+            var buf=new Uint8Array(l);
+            for (var i = 0; i < l; i++) {
+                buf[i] = (words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;
+               
+            }
+    return buf;
+};
+
+Binary.base64ToArrayBuffer=function(base64) {
+    var binary_string =  window.atob(base64);
+    var len = binary_string.length;
+    var bytes = new Uint8Array( len );
+    for (var i = 0; i < len; i++)        {
+        bytes[i] = binary_string.charCodeAt(i);
+    }
+    return bytes.buffer;
+};
+Binary.arrayBufferToBase64=function(arrayBuffer) {
+var base64 = ''
+var encodings = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+var bytes = new Uint8Array(arrayBuffer)
+var byteLength = bytes.byteLength
+var byteRemainder = byteLength % 3
+var mainLength = byteLength - byteRemainder
+var a, b, c, d
+var chunk
+// Main loop deals with bytes in chunks of 3
+for (var i = 0; i < mainLength; i = i + 3) {
+// Combine the three bytes into a single integer
+chunk = (bytes[i] << 16) | (bytes[i + 1] << 8) | bytes[i + 2]
+// Use bitmasks to extract 6-bit segments from the triplet
+a = (chunk & 16515072) >> 18 // 16515072 = (2^6 - 1) << 18
+b = (chunk & 258048) >> 12 // 258048 = (2^6 - 1) << 12
+c = (chunk & 4032) >> 6 // 4032 = (2^6 - 1) << 6
+d = chunk & 63 // 63 = 2^6 - 1
+// Convert the raw binary segments to the appropriate ASCII encoding
+base64 += encodings[a] + encodings[b] + encodings[c] + encodings[d]
+}
+// Deal with the remaining bytes and padding
+if (byteRemainder == 1) {
+chunk = bytes[mainLength]
+a = (chunk & 252) >> 2 // 252 = (2^6 - 1) << 2
+// Set the 4 least significant bits to zero
+b = (chunk & 3) << 4 // 3 = 2^2 - 1
+base64 += encodings[a] + encodings[b] + '=='
+} else if (byteRemainder == 2) {
+chunk = (bytes[mainLength] << 8) | bytes[mainLength + 1]
+a = (chunk & 64512) >> 10 // 64512 = (2^6 - 1) << 10
+b = (chunk & 1008) >> 4 // 1008 = (2^6 - 1) << 4
+// Set the 2 least significant bits to zero
+c = (chunk & 15) << 2 // 15 = 2^4 - 1
+base64 += encodings[a] + encodings[b] + encodings[c] + '='
+}
+return base64
+};
+
+Binary.arrayBufferToString=function(array) {
+    var out, i, len, c;
+    var char2, char3;
+
+    out = "";
+    len = array.length;
+    i = 0;
+    while(i < len) {
+    c = array[i++];
+    switch(c >> 4)
+    { 
+      case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7:
+        // 0xxxxxxx
+        out += String.fromCharCode(c);
+        break;
+      case 12: case 13:
+        // 110x xxxx   10xx xxxx
+        char2 = array[i++];
+        out += String.fromCharCode(((c & 0x1F) << 6) | (char2 & 0x3F));
+        break;
+      case 14:
+        // 1110 xxxx  10xx xxxx  10xx xxxx
+        char2 = array[i++];
+        char3 = array[i++];
+        out += String.fromCharCode(((c & 0x0F) << 12) |
+                       ((char2 & 0x3F) << 6) |
+                       ((char3 & 0x3F) << 0));
+        break;
+    }
+    }
+
+    return out;
+};
+
+Binary.stringToArrayBuffer=function(stringToEncode) {
+              stringToEncode = stringToEncode.replace(/\r\n/g,"\n");
+              var utftext = [];
+              
+
+              for (var n = 0; n < stringToEncode.length; n++) {
+
+                  var c = stringToEncode.charCodeAt(n);
+
+                  if (c < 128) {
+                      utftext[utftext.length]= c;
+                  }
+                  else if((c > 127) && (c < 2048)) {
+                      utftext[utftext.length]= (c >> 6) | 192;
+                      utftext[utftext.length]= (c & 63) | 128;
+                  }
+                  else {
+                      utftext[utftext.length]= (c >> 12) | 224;
+                      utftext[utftext.length]= ((c >> 6) & 63) | 128;
+                      utftext[utftext.length]= (c & 63) | 128;
+                  }
+
+              }
+              return utftext;  
+ };
+ 
 
 Binary.binaryString =function(nMask) {
   // nMask must be between -2147483648 and 2147483647
