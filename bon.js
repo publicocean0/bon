@@ -362,7 +362,8 @@ this.dataview=new DataView(appendBuffer(this.dataview.buffer,buffer));
 };
 Binary.prototype.toObject=function(check,t){
 	var tmp = new Uint8Array( this.dataview.buffer );
-	var r=BON.deserialize(tmp.slice(this.offset),(typeof(check)==undefined)?false:check,(typeof(t)==undefined)?null:t);
+	if (t==undefined) t=this.decodeInt(  8, false );
+	var r=BON.deserialize(tmp.slice(this.offset),(typeof(check)==undefined)?false:check,t);
 	this.offset+=r.binary.offset;
 	return r.object;
 }; 
@@ -1571,7 +1572,7 @@ if (t==undefined) _serialize(!stripped,stripped,data,obj); else _serialize(!stri
 if (checksum)	data.fromUint32(Binary.crc32(buffer,buffer.length-4));
 return buffer;
 };
-
+ 
 
 BON.encode=function(obj,checksum){
 if (checksum==undefined) checksum=false;
