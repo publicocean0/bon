@@ -72,6 +72,14 @@ if (typeof(Object.isTyped)=='undefined'){
 };
  
  }
+ 
+ 
+  if (typeof(Uint8Array.slice)=='undefined'){
+    Uint8Array.prototype.slice = function(begin,end){
+	return new Uint8Array((end==undefined)?this.subarray(begin):this.subarray(begin,end));	
+	};
+ 
+ }
 
 function checkEndianess(){
     var a = new ArrayBuffer(4);
