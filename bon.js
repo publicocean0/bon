@@ -916,6 +916,10 @@ b[1]=lo;
 
 };
 
+this.valueOf=function(){
+return this.toNumber();	
+};
+
 this.toNumber= function(allowImprecise) {
 var b = this.buffer;
 // Running sum of octets, doing a 2's complement
@@ -1566,7 +1570,7 @@ case 15: data.fromInt16(obj);break;
 case 16: data.fromUint32(obj);break;
 case 17: data.fromInt32(obj);break;
 case 18: data.fromUint64(obj.value);break;
-case 19: data.fromInt64(obj.value);break;
+case 19: data.fromInt64(obj.value);break; 
 case 20: data.fromFloat32(obj);break;
 case 21: data.fromFloat64(obj);break;
 case 22: data.fromBinary(obj);break;
