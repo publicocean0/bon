@@ -119,7 +119,17 @@ function swapBytes(buf, size){
 
 var  ENDIANESS=checkEndianess();
 var  TIMEZONEOFFSET=new Date().getTimezoneOffset();
- 
+
+Binary.prototype.reset    = function(){ 
+this.offset=0;
+this.dataview=new DataView(new ArrayBuffer(0));
+};
+
+Binary.prototype.truncate    = function(limit){ 
+if (limit>this.dataview.byteLength) throw "limit overlow";
+this.offset=0;
+this.dataview=new DataView(new Uint8Array(this.dataview.buffer).slice(limit).buffer);
+};
 function Binary (buffer) { // default big endian(network standard)
     if (buffer==undefined) this.dataview=new DataView(new ArrayBuffer(0));
     else if (buffer instanceof ArrayBuffer) this.dataview=new DataView(buffer,0);
@@ -327,6 +337,8 @@ Binary.utf8to16= function utf8to16(str) {
 
 
 Binary.prototype.encodeInt   = function encodeInt(value,bit,signed){
+var l=this.dataview.byteLength-this.offset-bit/8;
+if (l<0) this.appendBuffer(new ArrayBuffer(-l),false);
 switch(bit){
 case 8:{
  
@@ -344,20 +356,21 @@ this.offset+=4;
 }
 break;
 case 64:{
-var t=typeInstance(value);
- if (t=='int64') {	
+if (value instanceof TypedNumber) value=value.value;
+ if (signed) {	
 	this.dataview.setUint32(this.offset,value.upperInt(),false);
 	this.dataview.setUint32(this.offset+4,value.lowerInt(),false);
-} else if (t=='uint64') {	
+} else  {	
 	this.dataview.setUint32(this.offset,value.upperInt(),false);
 	this.dataview.setUint32(this.offset+4,value.lowerInt(),false);
-}
+} 
 this.offset+=8; 		
 }break;
 default : throw new Exception("integer length not correct");	
 }
 	
-};    
+}; 
+    
 Binary.prototype.appendBuffer=function(buffer,cut){
 if (cut==undefined) cut=true;
 if (cut){
@@ -368,6 +381,16 @@ if (cut){
 this.dataview=new DataView(appendBuffer(this.dataview.buffer,buffer));
 }	
 };
+Binary.prototype.setOffset=function(o){
+	if (o>this.dataview.byteLength) throw "offset overflow";
+	this.offset=o;
+};
+
+Binary.prototype.size=function(ab){
+	if (ab==undefined|| ab) return this.dataview.byteLength;
+	else return (this.dataview.byteLength-this.offset);
+};
+
 Binary.prototype.toObject=function(check,t){
 	var tmp = new Uint8Array( this.dataview.buffer );
 	if (t==undefined) t=this.decodeInt(  8, false );
@@ -376,8 +399,15 @@ Binary.prototype.toObject=function(check,t){
 	return r.object;
 }; 
 Binary.prototype.fromObject=function(obj,check){
-	var r=BON.serialize(obj,false,(typeof(check)==undefined)?false:check);
-	this.appendBuffer(r.remainingBuffer());
+	var buffer=BON.serialize(obj,false,(typeof(check)==undefined)?false:check);
+	var l=this.dataview.byteLength-this.offset-buffer.byteLength;
+    if (l<0) this.appendBuffer(buffer,false);
+    else {
+    var dst = new ArrayBuffer(src.byteLength);
+    new Uint8Array(this.dataview).set(new Uint8Array(buffer),this.offset);	
+
+	}
+	this.offset+=buffer.byteLength;
 }; 
 
 Binary.prototype.toDate=function(){
@@ -488,6 +518,8 @@ return a;
 
 
 Binary.prototype.encodeFloat   = function encodeFloat(value,isDouble){
+var l=this.dataview.byteLength-this.offset-8;
+if (l<0) this.appendBuffer(new ArrayBuffer(-l),false);
 if (isDouble)  this.dataview.setFloat64(this.offset,value,false); else this.dataview.setFloat32(this.offset,value,false);	
 this.offset+=8;	
 }; 
@@ -503,6 +535,8 @@ this.offset++;
 return a==1;	
 }; 
 Binary.prototype.fromBoolean   = function(b){
+var l=this.dataview.byteLength-this.offset-1;
+if (l<0) this.appendBuffer(new ArrayBuffer(-l),false);
 this.dataview.setUint8(this.offset,b?1:0);
 this.offset++;
 };
@@ -510,6 +544,8 @@ this.offset++;
 Binary.prototype.fromBitSet   = function(b){
 var l=b.length();
 var bytes=Math.ceil(l/8);
+var ll=this.dataview.byteLength-this.offset-8;
+if (ll<0) this.appendBuffer(new ArrayBuffer(-ll),false);
 var part=l%8;
 this.dataview.setUint32(this.offset,l);
 this.offset+=4;
@@ -552,7 +588,8 @@ Binary.getPropertySize=function(s){
 Binary.prototype.encodeProperty=function(s){
 if (s.length>255) throw new Exception('invalid property length');
 var count=Binary.getPropertySize(s)-1;
-
+var l=this.dataview.byteLength-this.offset-count-1;
+if (l<0) this.appendBuffer(new ArrayBuffer(-l),false);
 this.dataview.setUint8(this.offset,s.length,false);
 var ci=this.offset;
 for (var i=1;i<count;i++) this.dataview.setUint8(ci+i,0);
@@ -703,7 +740,8 @@ Binary.prototype.fromUTF8= function fromUTF8(stringToEncode){
                   }
 
               }
-
+var l=this.dataview.byteLength-this.offset-2-utftext.length;
+if (l<0) this.appendBuffer(new ArrayBuffer(-l),false);
 this.dataview.setUint16(this.offset,utftext.length,false);
 this.offset+=2;
 for(var i=0;i<utftext.length;i++) this.dataview.setUint8(this.offset++,utftext[i]);
@@ -738,9 +776,13 @@ return i+2;
 	
 };
 
-Binary.prototype.setOffset= function(a){
-this.offset=a;
+Binary.prototype.toBuffer    = function(size){ 
+if (size==undefined)
+return this.dataview.buffer;
+else return (new Uint8Array(this.dataview.buffer)).slice(0,size).buffer;
 };
+
+
 
 Binary.prototype.toBinary    = function(size){ 
 if (size==undefined) {size=this.dataview.getUint32(this.offset);this.offset+=4;}	
@@ -774,11 +816,15 @@ data=fileReader.result; // also accessible this way once the blob has been read
 data =  new Uint8Array(data);	
 }
 if (!fixed){
+var l=this.dataview.byteLength-this.offset-4-data.byteLength;
+if (l<0) this.appendBuffer(new ArrayBuffer(-l),false);
 this.dataview.setUint32(this.offset,data.byteLength,false);	
 var j=this.offset+4;
 for(var i=0;i<data.byteLength;i++)	this.dataview.setUint8(j++,data[i]);	
 this.offset+=4+data.byteLength;
 }else {
+var l=this.dataview.byteLength-this.offset-data.byteLength;
+if (l<0) this.appendBuffer(new ArrayBuffer(-l),false);
 var j=this.offset;
 for(var i=0;i<data.byteLength;i++)	this.dataview.setUint8(j++,data[i]);	
 this.offset+=data.byteLength;
@@ -1434,7 +1480,9 @@ case "number":return 21;
 }
 }
 
-
+BON.getSize=function(obj){
+return this.calculateSize(true,true,false,obj);		
+};
  
 
 BON.calculateSize=function(enumerable,typed,stripped,obj,type){
