@@ -120,15 +120,24 @@ function swapBytes(buf, size){
 var  ENDIANESS=checkEndianess();
 var  TIMEZONEOFFSET=new Date().getTimezoneOffset();
 
+Binary.prototype.rewind    = function(){ 
+this.offset=0;
+};
+
 Binary.prototype.reset    = function(){ 
 this.offset=0;
 this.dataview=new DataView(new ArrayBuffer(0));
 };
-
-Binary.prototype.truncate    = function(limit){ 
+Binary.prototype.truncate    = function(limit,type){ 
 if (limit>this.dataview.byteLength) throw "limit overlow";
-this.offset=0;
-this.dataview=new DataView(new Uint8Array(this.dataview.buffer).slice(limit).buffer);
+if (type==undefined) type=true;
+if (type){
+if (this.offset>limit) this.offset=limit; else this.offset=limit-this.offset;
+this.dataview=new DataView(new Uint8Array(this.dataview.buffer).slice(0,limit).buffer);
+}else{
+if (this.offset<limit) this.offset=0; else this.offset=this.offset-limit;
+this.dataview=new DataView(new Uint8Array(this.dataview.buffer).slice(limit).buffer);	
+}
 };
 function Binary (buffer) { // default big endian(network standard)
     if (buffer==undefined) this.dataview=new DataView(new ArrayBuffer(0));
@@ -370,7 +379,7 @@ default : throw new Exception("integer length not correct");
 }
 	
 }; 
-    
+     
 Binary.prototype.appendBuffer=function(buffer,cut){
 if (cut==undefined) cut=true;
 if (cut){
@@ -380,6 +389,10 @@ if (cut){
 } else {
 this.dataview=new DataView(appendBuffer(this.dataview.buffer,buffer));
 }	
+};
+Binary.prototype.prependBuffer=function(buffer){
+this.dataview=new DataView(appendBuffer(buffer,this.dataview.buffer));
+	
 };
 Binary.prototype.setOffset=function(o){
 	if (o>this.dataview.byteLength) throw "offset overflow";
@@ -401,10 +414,9 @@ Binary.prototype.toObject=function(check,t){
 Binary.prototype.fromObject=function(obj,check){
 	var buffer=BON.serialize(obj,false,(typeof(check)==undefined)?false:check);
 	var l=this.dataview.byteLength-this.offset-buffer.byteLength;
-    if (l<0) this.appendBuffer(buffer,false);
+    if (l<0) this.appendBuffer(buffer.buffer,false);
     else {
-    var dst = new ArrayBuffer(src.byteLength);
-    new Uint8Array(this.dataview).set(new Uint8Array(buffer),this.offset);	
+    (new Uint8Array(this.dataview.buffer)).set(new Uint8Array(buffer),this.offset);	
 
 	}
 	this.offset+=buffer.byteLength;
@@ -767,9 +779,9 @@ Binary.UTF8Length= function fromUTF8(stringToEncode){
                   else {
                       i+=3;
                   }
-
+ 
               }
-
+ 
 
 
 return i+2;  
