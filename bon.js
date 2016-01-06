@@ -403,7 +403,7 @@ Binary.prototype.size=function(ab){
 	if (ab==undefined|| ab) return this.dataview.byteLength;
 	else return (this.dataview.byteLength-this.offset);
 };
-
+  
 Binary.prototype.toObject=function(check,t){
 	var tmp = new Uint8Array( this.dataview.buffer );
 	if (t==undefined) t=this.decodeInt(  8, false );
@@ -411,8 +411,8 @@ Binary.prototype.toObject=function(check,t){
 	this.offset+=r.binary.offset;
 	return r.object;
 }; 
-Binary.prototype.fromObject=function(obj,check){
-	var buffer=BON.serialize(obj,false,(typeof(check)==undefined)?false:check);
+Binary.prototype.fromObject=function(obj,check,t){
+	var buffer=BON.serialize(obj,false,(typeof(check)==undefined)?false:check,t);
 	var l=this.dataview.byteLength-this.offset-buffer.byteLength;
     if (l<0) this.appendBuffer(buffer.buffer,false);
     else {
