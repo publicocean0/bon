@@ -384,14 +384,14 @@ Binary.prototype.appendBuffer=function(buffer,cut){
 if (cut==undefined) cut=true;
 if (cut){
 	var tmp = new Uint8Array( this.dataview.buffer ).slice(this.offset);
-	this.dataview=new DataView(appendBuffer(tmp,buffer));
+	this.dataview=new DataView(mergeBuffer(tmp,buffer));
 	this.offset=0;
 } else {
-this.dataview=new DataView(appendBuffer(this.dataview.buffer,buffer));
+this.dataview=new DataView(mergeBuffer(this.dataview.buffer,buffer));
 }	
 };
 Binary.prototype.prependBuffer=function(buffer){
-this.dataview=new DataView(appendBuffer(buffer,this.dataview.buffer));
+this.dataview=new DataView(mergeBuffer(buffer,this.dataview.buffer));
 	
 };
 Binary.prototype.setOffset=function(o){
@@ -1179,7 +1179,7 @@ this.setValue(hi,lo);
 	
 	
 };
-function appendBuffer( buffer1, buffer2 ) {
+function mergeBuffer( buffer1, buffer2 ) {
   var tmp = new Uint8Array( buffer1.byteLength + buffer2.byteLength );
   tmp.set( new Uint8Array( buffer1 ), 0 );
   tmp.set( new Uint8Array( buffer2 ), buffer1.byteLength );
