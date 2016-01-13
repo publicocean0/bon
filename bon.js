@@ -129,6 +129,7 @@ this.offset=0;
 this.dataview=new DataView(new ArrayBuffer(0));
 };
 Binary.prototype.truncate    = function(limit,type){ 
+if (limit==undefined) limit=this.offset;
 if (limit>this.dataview.byteLength) throw "limit overlow";
 if (type==undefined) type=true;
 if (type){
@@ -1211,9 +1212,13 @@ data=fileReader.result; // also accessible this way once the blob has been read
 } else {
 data =  new Uint8Array(buffer);	
 }
-
-
-for(var i=0;i<data.byteLength;i++) this.dataview.setUint8(this.offset++,data[i]);	
+ 
+if (this.size(false)>=data.byteLength)
+for(var i=0;i<data.byteLength;i++) this.dataview.setUint8(this.offset++,data[i]);
+else {
+this.dataview=new DataView(mergeBuffer(this.dataview.buffer,data));
+this.offset+=data.byteLength;
+}	
 };
 Binary.prototype.toInt8    = function(){ return new TypedNumber(this.decodeInt( 8, true  ),'int8'); };
 Binary.prototype.fromInt8  = function( data ){ return this.encodeInt( data,  8, false  ); };
