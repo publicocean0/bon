@@ -798,7 +798,8 @@ else return (new Uint8Array(this.dataview.buffer)).slice(0,size).buffer;
 
 
 Binary.prototype.toBinary    = function(size){ 
-if (size==undefined) {size=this.dataview.getUint32(this.offset);this.offset+=4;}	
+if (size==undefined) {size=this.dataview.getUint32(this.offset);this.offset+=4;}
+if (this.offset+size>this.dataview.buffer.byteLength) throw "size overflow";	
 var r=this.dataview.buffer.slice(this.offset,this.offset+size);	
 this.offset+=size;
 return r;
@@ -1498,12 +1499,12 @@ case "number":return 21;
 }
 
 BON.getSize=function(obj){
-return this.calculateSize(true,true,false,obj);		
+return BON.calculateSize(true,true,false,obj);		
 };
  
 
 BON.calculateSize=function(enumerable,typed,stripped,obj,type){
-if (type==undefined) type=this.getType(obj);
+if (type==undefined) type=BON.getType(obj);
 switch(type){
 case 0:return (!typed)?0:1;// null is skipped
 case 1:{
@@ -1575,7 +1576,7 @@ case 26:return ((!typed)?0:1)+Binary.UTF8Length(obj.name)+BON.calculateSize(enum
 BON.serialize=function(obj,stripped,checksum,t){
 if (stripped==undefined) stripped=false;
 if (checksum==undefined) checksum=false;
-var size=this.calculateSize(true,!stripped,stripped,obj,t);
+var size=BON.calculateSize(true,!stripped,stripped,obj,t);
 if (t!=undefined) size--;	
 if (checksum) size+=4;
 var buffer=(new Uint8Array(size));
@@ -1653,7 +1654,7 @@ return buffer;
 
 BON.encode=function(obj,checksum){
 if (checksum==undefined) checksum=false;
-var size=this.calculateSize(false,false,true,obj);	
+var size=BON.calculateSize(false,false,true,obj);	
 if (checksum) size+=4;
 var buffer=(new Uint8Array(size));
 data=new Binary(buffer.buffer);
