@@ -1386,12 +1386,13 @@ this.value;
 		  var s='';
 		  var t;
           if (this.store.length>1) for(var i=0;i<this.store.length-1;i++){
-           t=rpad(this.store[i].toString(2), '0', 32);
+           t=this.store[i].toString(2);
            if (!ENDIANESS) t=t.split("").reverse().join("");
-           s+=t;
+           s+=rpad(t,'0',32);
 	   }
-       t=rpad(this.store[this.store.length-1].toString(2), '0', this.size%32);
+	   t=this.store[this.store.length-1].toString(2);     
        if (!ENDIANESS) t=t.split("").reverse().join("");
+        t=rpad(t, '0', this.size%32);
        s+=t;
         return s;
       } else {
@@ -1839,6 +1840,5 @@ console.log(r);
 var t=BON.deserialize(r,true);
 console.log(JSON.stringify(t));
 */
-
 
 
