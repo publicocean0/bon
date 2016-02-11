@@ -1345,6 +1345,10 @@ this.value;
 	  var index=this.wordIndex(pos);
       this.store[index]= this.store[index] | (1 << (pos % 32));
     };
+    
+    BitSet.prototype.put = function(pos,v) {
+	     if (v) this.set(pos); else this.clear(pos);
+    };
 
     BitSet.prototype.clear = function(pos) {
 		var index=this.wordIndex(pos);
@@ -1391,7 +1395,7 @@ this.value;
        s+=t;
         return s;
       } else {
-        return lpad('', 0, 1);
+        return "0";
       }
     };
 
