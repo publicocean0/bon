@@ -1380,9 +1380,15 @@ this.value;
       };
       if (this.size > 0) {
 		  var s='';
-          if (this.store.length>1) for(var i=0;i<this.store.length-1;i++)
-           s+=rpad(this.store[i].toString(2), '0', 32);
-        s+=rpad(this.store[this.store.length-1].toString(2), '0', this.size%32);
+		  var t;
+          if (this.store.length>1) for(var i=0;i<this.store.length-1;i++){
+           t=rpad(this.store[i].toString(2), '0', 32);
+           if (!ENDIANESS) t=t.split("").reverse().join("");
+           s+=t;
+	   }
+       t=rpad(this.store[this.store.length-1].toString(2), '0', this.size%32);
+       if (!ENDIANESS) t=t.split("").reverse().join("");
+       s+=t;
         return s;
       } else {
         return lpad('', 0, 1);
