@@ -1329,9 +1329,22 @@ this.value;
 
 
 
-    function BitSet() {
+    function BitSet(v) {
 	  this.size=0;
       this.store = [];
+      if (typeof(v)!='undefined'){
+		if (v instanceof BitSet) {
+	    this.size=v.size;
+	    this.store=v.store;
+	    } else if(typeInstance(v)=='string'){
+			var ch;
+		for (var i=0;i<v.length;i++){
+			ch=v.charAt(i);
+			if (ch!='0' &&ch!='1') throw "invalid bit string";
+			this.put(i,ch=='1');
+		}	
+		} 
+	  }
     }
 
     BitSet.prototype.wordIndex = function(pos) {
@@ -1348,6 +1361,42 @@ this.value;
     
     BitSet.prototype.put = function(pos,v) {
 	     if (v) this.set(pos); else this.clear(pos);
+    };
+    
+    BitSet.prototype.testMask = function(v) {
+	     var mask=new BitSet(v);
+	     var bits=new BitSet(this);
+	     bits.and(mask);
+	     return bits.equals(mask);
+    };
+    BitSet.prototype.equals = function(v) {
+		 if (v instanceof BitSet){
+			var l2=v.size/32+1; 
+			var l1=this.size/32+1;
+			var l=l1>l2?l2:l1;
+			if (l>0)for(var i=0;i<l-1;i++) if (this.store[i]!=v.store[i]) return false;
+			if (l1!=l2){
+				var store,k,size;
+				
+				if (l1>l2){
+				   store=this.store;
+				   k=l1-l2;
+				   size=this.size;
+				} else {
+				   store=v.store;
+				   k=l2-l1;
+				   size=v.size;
+				} 
+			    kl=k/32;
+			    if (kl>0)for(var i=0;i<kl-1;i++) if (store[l+i]!=0) return false;
+			    var mask=0;
+			    var p=size%32;
+			    for(var i=0;i<p;i++) mask=(mask<<1)|1;			    
+			    return (this.store[l1-1]&mask)==0;
+			} 
+			return true; 
+		 } else return false;
+
     };
 
     BitSet.prototype.clear = function(pos) {
