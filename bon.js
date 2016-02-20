@@ -1574,6 +1574,7 @@ return BON.calculateSize(true,true,false,obj);
  
 
 BON.calculateSize=function(enumerable,typed,stripped,obj,type){
+if (obj instanceof NullableValue) return 1+BON.calculateSize(enumerable,typed,stripped,obj.value,type);
 if (type==undefined) type=BON.getType(obj);
 switch(type){
 case 0:return (!typed)?0:1;// null is skipped
@@ -1646,22 +1647,19 @@ case 26:return ((!typed)?0:1)+Binary.UTF8Length(obj.name)+BON.calculateSize(enum
 BON.serialize=function(obj,stripped,checksum,t){
 if (stripped==undefined) stripped=false;
 if (checksum==undefined) checksum=false;
-var size;
-if (obj instanceof NullableValue) {
-obj=obj.value;
-var isnull= (obj==null||obj==undefined);
-if (isnull) size=1;
-else {
-	data.fromBoolean(true);
-	size=1+BON.calculateSize(true,!stripped,stripped,obj,t);
-	}
-
-} size=BON.calculateSize(true,!stripped,stripped,obj,t);
+var size=BON.calculateSize(true,!stripped,stripped,obj,t);
 if (t!=undefined) size--;	
 if (checksum) size+=4;
 var buffer=(new Uint8Array(size));
 data=new Binary(buffer.buffer);
 var _serialize=function(typed,stripped,data,obj,t){
+if (obj instanceof NullableValue) {
+obj=obj.value;
+var isnull= (obj==null||obj==undefined);
+if (!isnull) {
+	data.fromBoolean(true);
+}
+}
 if (t==undefined) {
 	t=BON.getType(obj);
     if (typed) data.fromUint8(t);
@@ -1734,21 +1732,18 @@ return buffer;
 
 BON.encode=function(obj,checksum){
 if (checksum==undefined) checksum=false;
-var size;
-if (obj instanceof NullableValue) {
-obj=obj.value;
-var isnull= (obj==null||obj==undefined);
-if (isnull) size=1;
-else {
-	data.fromBoolean(true);
-	size=1+BON.calculateSize(false,false,true,obj);
-	}
- 
-} size=BON.calculateSize(false,false,true,obj);	
+var size=BON.calculateSize(false,false,true,obj);	
 if (checksum) size+=4;
 var buffer=(new Uint8Array(size));
 data=new Binary(buffer.buffer);
 var _serialize=function(data,obj){
+if (obj instanceof NullableValue) {
+obj=obj.value;
+var isnull= (obj==null||obj==undefined);
+if (!isnull) {
+	data.fromBoolean(true);
+}
+}
 var t=BON.getType(obj);
 switch(t){
 case 0: break;
