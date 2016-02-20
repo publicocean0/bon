@@ -929,7 +929,7 @@ EID.prototype.toString=function(){
 
 function NullableValue(v){
 this.value=v;	
-this.toString=function(){return this.value.toString();};
+this.toString=function(){if(this.value==null) return 'null';if (typeof(this.value.toString)=='function') return this.value.toString(); else return '[object]';};
 };
 
 function UInt64(hi,lo){
@@ -1740,9 +1740,7 @@ var _serialize=function(data,obj){
 if (obj instanceof NullableValue) {
 obj=obj.value;
 var isnull= (obj==null||obj==undefined);
-if (!isnull) {
-	data.fromBoolean(true);
-}
+data.fromBoolean(!isnull);
 }
 var t=BON.getType(obj);
 switch(t){
