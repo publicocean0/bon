@@ -554,6 +554,10 @@ this.dataview.setUint8(this.offset,b?1:0);
 this.offset++;
 };
 
+Binary.prototype.isNull   = function(){
+return !this.toBoolean();
+};
+
 Binary.prototype.fromBitSet   = function(b){
 var l=b.length();
 var bytes=Math.ceil(l/8);
@@ -921,6 +925,10 @@ EID.prototype.toString=function(){
 		} while (i <= 15 ||( i==16 &&q>0));
 		if (sb.length==0) sb='0';
 		return sb;
+};
+
+function NullableValue(v){
+this.value=v;	
 };
 
 function UInt64(hi,lo){
@@ -1311,6 +1319,7 @@ function TypedNumber(a,type) {
    
 }
 TypedNumber.prototype.constructor = TypedNumber;
+ 
 TypedNumber.prototype.valueOf=function(){ 
 	return this.value.valueOf();
 };
@@ -1636,7 +1645,17 @@ case 26:return ((!typed)?0:1)+Binary.UTF8Length(obj.name)+BON.calculateSize(enum
 BON.serialize=function(obj,stripped,checksum,t){
 if (stripped==undefined) stripped=false;
 if (checksum==undefined) checksum=false;
-var size=BON.calculateSize(true,!stripped,stripped,obj,t);
+var size;
+if (obj instanceof NullableValue) {
+obj=obj.value;
+var isnull= (obj==null||obj==undefined);
+if (isnull) size=1;
+else {
+	data.fromBoolean(true);
+	size=1+BON.calculateSize(true,!stripped,stripped,obj,t);
+	}
+
+} size=BON.calculateSize(true,!stripped,stripped,obj,t);
 if (t!=undefined) size--;	
 if (checksum) size+=4;
 var buffer=(new Uint8Array(size));
@@ -1714,7 +1733,17 @@ return buffer;
 
 BON.encode=function(obj,checksum){
 if (checksum==undefined) checksum=false;
-var size=BON.calculateSize(false,false,true,obj);	
+var size;
+if (obj instanceof NullableValue) {
+obj=obj.value;
+var isnull= (obj==null||obj==undefined);
+if (isnull) size=1;
+else {
+	data.fromBoolean(true);
+	size=1+BON.calculateSize(false,false,true,obj);
+	}
+ 
+} size=BON.calculateSize(false,false,true,obj);	
 if (checksum) size+=4;
 var buffer=(new Uint8Array(size));
 data=new Binary(buffer.buffer);
