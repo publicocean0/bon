@@ -929,6 +929,7 @@ EID.prototype.toString=function(){
 
 function NullableValue(v){
 this.value=v;	
+this.toString=function(){return this.value.toString();};
 };
 
 function UInt64(hi,lo){
