@@ -905,7 +905,11 @@ this.value=new Uint8Array(buffer);
 }
 	
 };
-
+EID.generate=function(){
+var value = new Uint8Array(16);
+window.crypto.getRandomValues(value);	
+return new EID(value);	
+}
 
 EID.prototype.toString=function(){
 	var  q = 0;var sb='';
@@ -1666,7 +1670,8 @@ if (t==undefined) {
 }	
 switch(t){
 case 0: break;
-case 1:{keys=Object.keys(obj);
+case 1:{
+var keys=Object.keys(obj);
 data.fromUint32(keys.length);
 var k=keys[0],o=obj[k],tt=BON.getType(o);
 if (!stripped) data.fromUint8(tt);	
@@ -1676,7 +1681,7 @@ data.encodeProperty(k);
 _serialize(false,stripped,data,obj[k],tt);
 }}break;
 case 2: {
-keys=Object.keys(obj);
+var keys=Object.keys(obj);
 data.fromUint32(keys.length);
 var k,o;	
 for(var i=0;i<keys.length;i++){
@@ -1746,7 +1751,7 @@ var t=BON.getType(obj);
 switch(t){
 case 0: break;
 case 1:case 2: {
-keys=Object.keys(obj);
+var keys=Object.keys(obj);
 var k,o;	
 for(var i=0;i<keys.length;i++){
 k=keys[i];o=obj[k];
