@@ -1588,7 +1588,7 @@ case 1:{
 	size+=(!typed)?0:1;
 	if (!stripped) size++;
 	for(var i=0;i<keys.length;i++) size+=Binary.getPropertySize(keys[i]);// fieldname props
-	if (keys.length>0) size+=keys.length*BON.calculateSize(enumerable,false,stripped,obj[keys[0]]);
+	for(var i=0;i<keys.length;i++) size+=BON.calculateSize(enumerable,false,stripped,obj[keys[i]]);
 	return size;
 	}
 case 2:{
