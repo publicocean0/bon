@@ -1,3 +1,4 @@
+
 Object.getName = function (obj) {
         if (obj && obj.constructor && obj.constructor.toString()) {
 
@@ -363,7 +364,7 @@ break;
 case 32:{
 if (signed) this.dataview.setInt32(this.offset,value,false); else this.dataview.setUint32(this.offset,value,false);
 this.offset+=4;	
-}
+} 
 break;
 case 64:{
 if (value instanceof TypedNumber) value=value.value;
@@ -486,7 +487,7 @@ callback(v,step);
 }	
 }; 
 Binary.prototype.toUntypedIterator=function(callback){
-var tt,v;
+var v;
 var step=this.toBoolean();
 while (step){
 v=this.toObject();	
@@ -656,7 +657,6 @@ var s='';
 var index=count;
 var ci=this.offset+1;
 var bi=8;
-var ch;
 var c,a=0;
 var tmp;
 do{
@@ -705,7 +705,8 @@ Binary.prototype.toUTF8= function toUTF8(){
  var end=count+i;
  var result= "";
                   
-                  var c=c1=c2=0;
+    var c,c1,c2,c3;
+    c=c1=c2=0;
                 
                 
                   while( i < end ) {
@@ -1262,7 +1263,7 @@ return s;
  
 };
 Binary.crc32=function crc32 (buffer,len ) {
-        fnv = 0;
+        var fnv = 0;
 
         for(var i = 0; i < len; i++) {
             fnv = ((fnv + (((fnv << 1) + (fnv << 4) + (fnv << 7) + (fnv << 8) + (fnv << 24)) >>> 0)) ^ (buffer[i] & 0xff)) ;
@@ -1271,6 +1272,7 @@ Binary.crc32=function crc32 (buffer,len ) {
         return fnv >>> 0;
 
 };
+BON.DATA_TYPE ={NULL:0,TYPED_OBJECT:1,UNTYPED_OBJECT:2,TYPED_LIST:3,UNTYPED_LIST:4,TYPED_ITERATOR:5,UNTYPED_ITERATOR:6,EID:7,REFERENCE:8,TYPE:9,BOOLEAN:10,UTF8:11,UINT8:12,INT8:13,UINT16:14,INT16:15,UINT32:16,INT32:17,UINT64:18,INT64:19,FLOT32:20,FLOAT64:21,BINARY:22,DATE:23,REGEXP:24,BITSET:25,PROPERTY:26};
 /* type 
  * 0 null
  * 1 typedobject
@@ -1401,7 +1403,7 @@ this.value;
 				   k=l2-l1;
 				   size=v.size;
 				} 
-			    kl=k/32;
+			    var kl=k/32;
 			    if (kl>0)for(var i=0;i<kl-1;i++) if (store[l+i]!=0) return false;
 			    var mask=0;
 			    var p=size%32;
@@ -1437,8 +1439,7 @@ this.value;
 	};
 
     BitSet.prototype.toString = function() {
-      var lpad,
-        _this = this;
+        var rpad;
       rpad = function(str, padString, length) {
         while (str.length < length) {
           str =  str + padString;
@@ -1655,7 +1656,7 @@ var size=BON.calculateSize(true,!stripped,stripped,obj,t);
 if (t!=undefined) size--;	
 if (checksum) size+=4;
 var buffer=(new Uint8Array(size));
-data=new Binary(buffer.buffer);
+var data=new Binary(buffer.buffer);
 var _serialize=function(typed,stripped,data,obj,t){
 if (obj instanceof NullableValue) {
 obj=obj.value;
@@ -1740,7 +1741,7 @@ if (checksum==undefined) checksum=false;
 var size=BON.calculateSize(false,false,true,obj);	
 if (checksum) size+=4;
 var buffer=(new Uint8Array(size));
-data=new Binary(buffer.buffer);
+var data=new Binary(buffer.buffer);
 var _serialize=function(data,obj){
 if (obj instanceof NullableValue) {
 obj=obj.value;
@@ -1917,5 +1918,3 @@ console.log(r);
 var t=BON.deserialize(r,true);
 console.log(JSON.stringify(t));
 */
-
-
