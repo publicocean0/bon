@@ -36,6 +36,8 @@ function typeInstance(obj){
 if (obj instanceof Object) return Object.getName(obj).toLowerCase();
 else return typeof(obj);
 } 
+
+
 if (typeof(Object.keys)=='undefined'){
  Object.keys = function(obj){
    var keys = [];
@@ -177,7 +179,7 @@ Binary.wordToByteArray=function(wordArray) {
 };
 
 Binary.base64ToArrayBuffer=function(base64) {
-    var binary_string =  window.atob(base64);
+    var binary_string =   atob(base64);
     var len = binary_string.length;
     var bytes = new Uint8Array( len );
     for (var i = 0; i < len; i++)        {
@@ -908,7 +910,7 @@ this.value=new Uint8Array(buffer);
 };
 EID.generate=function(){
 var value = new Uint8Array(16);
-window.crypto.getRandomValues(value);	
+crypto.getRandomValues(value);	
 return new EID(value);	
 }
 
@@ -1307,22 +1309,23 @@ BON.DATA_TYPE ={NULL:0,TYPED_OBJECT:1,UNTYPED_OBJECT:2,TYPED_LIST:3,UNTYPED_LIST
 
 function TypedNumber(a,type) {
     this.type=(type!=undefined)?type:'float64';
-    this.checkAndSet=function(t,a){
+    var $this=this;
+    var checkAndSet=function(t,a){
     switch(t){
-	case "int8":if (a<-128||a>127) throw 'invalid numeric range';this.value=new Number(a);return 1;	
-	case "uint8":if (a<0||a>255) throw 'invalid numeric range';this.value=new Number(a);return 1;;	
-	case "int16":if (a<-32768||a>32767) throw 'invalid numeric range';this.value=new Number(a);return 2;	
-	case "uint16":if (a<0||a>65535) throw 'invalid numeric range';this.value=new Number(a);return 2;	
-	case "int32":if (a<-2147483648||a>2147483647) throw 'invalid numeric range';this.value=new Number(a);return 4;	
-	case "uint32":if (a<0||a>4294967295) throw 'invalid numeric range';this.value=new Number(a);return 4;	
-	case "int64": if (typeInstance(a)=='number') a=new Int64(a);else  if (!(a instanceof Int64) ) throw 'invalid type object';this.value=a;return 8;	
-	case "uint64":if (typeInstance(a)=='number') a=new UInt64(a);else if (!(a instanceof UInt64) ) throw 'invalid type object';this.value=a;return 8;
-	case "float32":if (a<-1.40129846432481707e-45||a>3.40282346638528860e+38) throw 'invalid numeric range';this.value=new Number(a);return 4;
-	case "float64":this.value=new Number(a);return 8;
+	case "int8":if (a<-128||a>127) throw 'invalid numeric range';$this.value=new Number(a);return 1;	
+	case "uint8":if (a<0||a>255) throw 'invalid numeric range';$this.value=new Number(a);return 1;;	
+	case "int16":if (a<-32768||a>32767) throw 'invalid numeric range';$this.value=new Number(a);return 2;	
+	case "uint16":if (a<0||a>65535) throw 'invalid numeric range';$this.value=new Number(a);return 2;	
+	case "int32":if (a<-2147483648||a>2147483647) throw 'invalid numeric range';$this.value=new Number(a);return 4;	
+	case "uint32":if (a<0||a>4294967295) throw 'invalid numeric range';$this.value=new Number(a);return 4;	
+	case "int64": if (typeInstance(a)=='number') a=new Int64(a);else  if (!(a instanceof Int64) ) throw 'invalid type object';$this.value=a;return 8;	
+	case "uint64":if (typeInstance(a)=='number') a=new UInt64(a);else if (!(a instanceof UInt64) ) throw 'invalid type object';$this.value=a;return 8;
+	case "float32":if (a<-1.40129846432481707e-45||a>3.40282346638528860e+38) throw 'invalid numeric range';$this.value=new Number(a);return 4;
+	case "float64":$this.value=new Number(a);return 8;
 	default :	throw 'invalid numeric type \''+t+'\'';
 	}
     };
-    this.size=this.checkAndSet(this.type,a);
+    this.size=checkAndSet(this.type,a);
    
 }
 TypedNumber.prototype.constructor = TypedNumber;
@@ -1338,7 +1341,7 @@ TypedNumber.prototype.toJSON=function(){
 };
 TypedNumber.prototype.set=function(value){ 
 if (value instanceof TypedNumber) value=value.valueOf();
-this.size=this.checkRange(this.type,value);
+this.size=checkAndSet(this.type,value);
 this.value;
 };
 
