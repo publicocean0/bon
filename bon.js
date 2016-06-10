@@ -802,6 +802,15 @@ return this.dataview.buffer;
 else return (new Uint8Array(this.dataview.buffer)).slice(0,size).buffer;
 };
 
+Binary.prototype.getSubBuffer    = function(offset,size){ 
+if (offset==undefined) offset=0;
+if (size==undefined) size=this.dataview.buffer.byteLength-offset;
+if (offset>this.dataview.buffer.byteLength) throw "invalid offset";
+if (offset+size>this.dataview.buffer.byteLength) throw "invalid size";
+if (size==this.dataview.buffer.byteLength && offset==0)
+return this.dataview.buffer;
+else return (new Uint8Array(this.dataview.buffer)).subarray(offset,offset+size);
+};
 
 
 Binary.prototype.toBinary    = function(size){ 
