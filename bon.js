@@ -809,7 +809,7 @@ if (offset>this.dataview.buffer.byteLength) throw "invalid offset";
 if (offset+size>this.dataview.buffer.byteLength) throw "invalid size";
 if (size==this.dataview.buffer.byteLength && offset==0)
 return this.dataview.buffer;
-else return (new Uint8Array(this.dataview.buffer)).subarray(offset,offset+size);
+else return (new Uint8Array(this.dataview.buffer)).subarray(offset,offset+size).buffer;
 };
 
 
