@@ -821,6 +821,61 @@ this.offset+=size;
 return r;
 };
 
+
+Binary.prototype.toStream    = function(callback){ 
+var size;
+if (typeof(callback)=='function'){
+while (true){
+size=this.dataview.getUint32(this.offset);
+this.offset+=4;
+if (size==0) break;
+callback(this.dataview.buffer.slice(this.offset,this.offset+size));
+this.offset+=size;
+}	
+} else {
+var r=new ArrayBuffer(0);
+while (true){
+size=this.dataview.getUint32(this.offset);
+this.offset+=4;
+if (size==0) break;
+r=mergeBuffer(r,this.dataview.buffer.slice(this.offset,this.offset+size));	
+this.offset+=size;	
+}
+return r;
+}
+
+};
+
+Binary.prototype.fromStream    = function( data ){ 
+	
+var append=function(buf){
+var l=this.dataview.byteLength-this.offset-4-buff.byteLength;
+if (l<0) this.appendBuffer(new ArrayBuffer(-l),false);
+this.dataview.setUint32(this.offset,data.byteLength,false);	
+var j=this.offset+4;
+for(var i=0;i<data.byteLength;i++)	this.dataview.setUint8(j++,data[i]);	
+this.offset+=4+data.byteLength;
+};	
+	
+if (data instanceof Blob) {
+var uint8ArrayNew  = null;
+var arrayBufferNew = null;
+var fileReader     = new FileReader();
+fileReader.onload  = function(progressEvent) {
+   append( this.result);
+};
+fileReader.readAsArrayBuffer(blob);
+fileReader.result; //wait end of reading
+	
+} else if (typeof(data)=='undefined') {
+return append;
+} else {
+append(data);	
+}
+
+	
+};
+
 Binary.prototype.fromBinary    = function( data,fixed ){ 
 if (fixed == undefined) fixed=false;
 if (data instanceof Blob) {
@@ -1312,6 +1367,7 @@ BON.DATA_TYPE ={NULL:0,TYPED_OBJECT:1,UNTYPED_OBJECT:2,TYPED_LIST:3,UNTYPED_LIST
  * 24 regexp
  * 25 bitset
  * 26 property
+ * 27 binary stream
  * ... optional
  * */
 
@@ -1658,6 +1714,14 @@ case 23:return (!typed)?8:9;
 case 24:return  ((!typed)?4:5)+obj.source.length;
 case 25: return  ((!typed)?4:5)+Math.ceil(obj.length()/8);
 case 26:return ((!typed)?0:1)+Binary.UTF8Length(obj.name)+BON.calculateSize(enumerable,!stripped,stripped,obj.value);
+case 27: {
+	var c=4;
+	c+=(!typed)?0:1;
+	if (obj instanceof Blob) c+=obj.size; 
+	else if ((obj instanceof ArrayBuffer)||(obj instanceof Int8Array)||(obj instanceof Uint8Array)||(obj instanceof Int16Array)||(obj instanceof Uint16Array)||(obj instanceof Int32Array)||(obj instanceof Uint32Array)||(obj instanceof Float32Array)||(obj instanceof Float64Array)) c+=obj.byteLength;
+	//partially indetermined
+	return c;
+	}
 }	
 };
   
@@ -1740,6 +1804,7 @@ case 23: data.fromDate(obj);break;
 case 24: data.fromRegExp(obj);break;
 case 25: data.fromBitSet(obj);break;
 case 26: data.fromProperty(obj,stripped);break;
+case 27: data.fromStream(obj);break;
 }
 };
 if (t==undefined) _serialize(!stripped,stripped,data,obj); else _serialize(!stripped,stripped,data,obj,t);
@@ -1798,7 +1863,8 @@ case 22: data.fromBinary(obj,true);break;
 case 23: data.fromDate(obj);break;
 case 24: data.fromRegExp(obj);break;
 case 25: data.fromBitSet(obj);break;
-case 26:data.fromProperty(obj,true);break;
+case 26: data.fromProperty(obj,true);break;
+case 27: data.fromStream(obj);break;
 }
 };
 _serialize(data,obj);
@@ -1900,6 +1966,7 @@ case 23: return data.toDate();
 case 24: return data.toRegExp();	
 case 25: return data.toBitSet();
 case 26: return data.toProperty();
+case 27: return data.toStream();
 default: throw "undefined data type with code "+t;
 }	
 	
