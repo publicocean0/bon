@@ -1889,6 +1889,7 @@ if (checksum)	{
 	
 }
 var _deserialize=function (data,t){
+
 if (t==undefined||t==null) t=data.decodeInt(8, false  );
 switch(t){
 case 0: return null;
@@ -1971,7 +1972,7 @@ default: throw "undefined data type with code "+t;
 }	
 	
 };
-var r= _deserialize(data,t); 
+var r= buffer.byteLength==0?undefined:_deserialize(data,t); 
 if (t==undefined && data.offset!=buffer.byteLength-(checksum?4:0)) throw "data doesn't cover all the buffer";
 return (t!=undefined)?{'object':r,'binary':data}:r;
 };
