@@ -1,7 +1,7 @@
 # BON (Binary Object Notation)
 
 BON is a binary notation for a fast conversion of object, defined for working in every programmaing languages. It is designed for being autoconsistent format in nested way, it has a extensible definition and can used in streams or multi-message protocols, it can use used for conditional conversions or for iterators with undefined size, it can be used for static or dynamic serialization:
-- static :data types are not saved in the the binary so it suppose the deserializer knows the abstract data type used in the binary data. You have to use Binary object for complex serializations or BON.serialize with  strict=true. 
+- static :data types are not saved in the the binary so it suppose the deserializer knows the abstract data type used in the binary data. You have to use Binary object for complex serializations or BON.serialize with  strict=true or BON.encode. 
 - dynamic: serializalization is auto-descriptive so you can use BON.unserialize.
 
 The numbers are serialized in big endian order. The properties names are encoded in compressed way in a 6bit encoding (accepted characters are [ a-z, A-Z,0-9, _ ,$] , maximum length is 255 ).
