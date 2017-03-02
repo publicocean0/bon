@@ -1,7 +1,7 @@
 # BON (Binary Object Notation)
 
 BON is a binary notation for a fast conversion of object, defined for working in every programmaing languages. It is designed for being autoconsistent format in nested way, it has a extensible definition and can used in streams or multi-message protocols, it can use used for conditional conversions or for iterators with undefined size.
-The numbers are serialized in big endian order. The properties names are encoded in compressed way in a 6bit binary encoding (accepted characters are [ a-z, A-Z,0-9, _ ,$] , maximum length is 255 ).
+The numbers are serialized in big endian order. The properties names are encoded in compressed way in a 6bit encoding (accepted characters are [ a-z, A-Z,0-9, _ ,$] , maximum length is 255 ).
 There are 26 different of data type already defined, but you can extend the protocol with other custom serialization. 
 The main data types are:
 
