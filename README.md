@@ -4,7 +4,7 @@ BON is a binary notation for a fast conversion of object, defined for working in
 - static :data types are not saved in the the binary so it suppose the deserializer knows the abstract data type used in the binary data. You have to use Binary object for complex serializations or BON.serialize with  strict=true or BON.encode. 
 - dynamic: serializalization is auto-descriptive so you can use BON.unserialize. It permits to validate data or extract validation schema in automatic way.
 
-The numbers are serialized in big endian order. The properties names are encoded in compressed way in a 6bit encoding (accepted characters are [ a-z, A-Z,0-9, _ ,$] , maximum length is 255 ).
+The numbers are serialized in big endian order. The properties names are encoded in compressed way in a 6bit encoding (accepted characters are [ a-z, A-Z,0-9, _ ,$] , maximum length is 255 ).Javascript handle numbers in a special simplified way for supporting integer, and floating point numbers and bit length there is the class TypedNumber.
 There are 26 different of data type already defined, but you can extend the protocol with other custom serialization. 
 The main data types are:
 
