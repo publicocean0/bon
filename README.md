@@ -1,6 +1,6 @@
 # BON (Binary Object Notation)
 
-BON is a binary notation for a fast conversion of object, defined for working in every programmaing languages. It is designed for being autoconsistent format in nested way, it is extensible and can used in streams or multi-message protocols.
+BON is a binary notation for a fast conversion of object, defined for working in every programmaing languages. It is designed for being autoconsistent format in nested way, it is extensible and can used in streams or multi-message protocols, it can use used for conditional conversions.
 
 There are 26 different of data type already defined, but you can extend the protocol with other custom serialization. 
 The main data types are:
