@@ -98,7 +98,7 @@ function checkEndianess() {
 }
 
 function swapBytes(buf, size) {
-    var bytes = Uint8Array(buf);
+    var bytes = new Uint8Array(buf);
     var len = bytes.length;
     if (size == 'WORD') {
         var holder;
